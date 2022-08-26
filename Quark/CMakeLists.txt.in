@@ -1,0 +1,13 @@
+cmake_minimum_required (VERSION 3.8)
+project(App NONE)
+include(ExternalProject)
+ExternalProject_Add(sfml
+  GIT_REPOSITORY    https://github.com/SFML/SFML.git
+  GIT_TAG           2.5.1 
+  SOURCE_DIR        "${CMAKE_SOURCE_DIR}/build/sfml-src"
+  BINARY_DIR        "${CMAKE_SOURCE_DIR}/build/sfml-build"
+  CONFIGURE_COMMAND ""
+  BUILD_COMMAND     ""
+  INSTALL_COMMAND   ""
+  TEST_COMMAND      ""
+)
