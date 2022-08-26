@@ -3,8 +3,6 @@ Quark Engine
 
 ## Configuration and build
 
-If you fork the full source code from [here][1] (to get `App.h` and `App.cpp`), you should be able to type the following lines in a terminal at the root of the project folder.
-
 On windows
 ```shell
   # on windows
