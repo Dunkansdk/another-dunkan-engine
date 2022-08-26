@@ -1,7 +1,23 @@
 # quark-engine
 Quark Engine
 
+## Unix dependencies
+```shell
+  sudo apt-get install libudev-dev
+  sudo apt-get install libopenal-dev
+  sudo apt-get install libvorbis-dev
+  sudo apt-get install libsndfile1-dev
+  sudo apt-get install libx11-dev
+  sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
+  sudo apt-get install libfreetype6-dev
+```
+
+
+
+
 ## Configuration and build
+
+If you fork the full source code from [here][1] (to get `App.h` and `App.cpp`), you should be able to type the following lines in a terminal at the root of the project folder.
 
 On windows
 ```shell

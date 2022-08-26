@@ -1,8 +1,9 @@
 cmake_minimum_required (VERSION 3.8)
-project (app C CXX)
+project (app)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in
@@ -48,5 +49,16 @@ if(WIN32 OR WIN64)
 else()
   target_link_libraries(app sfml-window sfml-system sfml-graphics pthread X11)
 endif()
+
 source_group("src" FILES ${APP_SRC_FILES})
 source_group("include" FILES ${APP_INCLUDE_DIR}/*.h)
+
+if(MSVC)
+  if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
+    string(REGEX REPLACE "/W[0-4]" "/W4" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
+  endif()
+elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
+endif()
