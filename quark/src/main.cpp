@@ -8,28 +8,15 @@
 using namespace QUARK;
 
 struct NameComponent {
-  char const name[8];
-};
-
-struct MyVec {
-  char const pre[16] = "#VECTOR-BEGIN##";
-  std::vector<int> vec{};
-  char const post[16] = "#VECTOR-END####";
+  char const name[8] { "noname" };
 };
 
 int main() {
 
-  MyVec example_array { .vec = { 1, 2, 4, 8, 16, 32 } };
+  Slotmap<NameComponent, 4> names;
+  names.push_back(NameComponent{"Emanuel"});
 
-  // Stack memory
-  MemoryViewer::show_memory_object(example_array);
-
-  // Heap memory
-  MemoryViewer::show_memory_ptr(&example_array.vec[0], 24);
-
-  example_array.vec.push_back(64);
-  MemoryViewer::show_memory_object(example_array);
-  MemoryViewer::show_memory_ptr(&example_array.vec[0], 48);
+  MemoryViewer::show_memory_object(names);
 
 /*
   Engine engine = { "Quark engine" };

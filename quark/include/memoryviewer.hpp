@@ -24,7 +24,7 @@ namespace QUARK {
 			{
 				std::printf("%16p ||", (void*)memory);
 				for(std::size_t i{}; i < width; ++i) { std::printf(" %02X", memory[i]);	}
-				std::printf(" || ", (void*)memory);
+				std::printf(" || ");
 				for(std::size_t i{}; i < width; ++i) {
 					auto character = (memory[i] > 31 && memory[i] < 128) ? memory[i] : '.'; // Character filter fix
 					std::printf("%c", character);
