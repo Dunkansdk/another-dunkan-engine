@@ -1,4 +1,5 @@
 #include <slotmap.hpp>
+#include <memoryviewer.hpp>
 #include <engine.hpp>
 #include <rendersystem.hpp>
 #include <physicssystem.hpp>
@@ -12,12 +13,9 @@ struct NameComponent {
 
 int main() {
 
-  constexpr Slotmap<NameComponent, 4> names;
-  std::printf("Names %ld\n", names.size());
-  std::printf("Names %ld\n", names.size());
-  names.capacity();
-
-  Slotmap<float, names.size()> fs;
+  std::array example_array { 1, 2, 4, 8, 16, 32 };
+  auto* pointer = reinterpret_cast<std::uint8_t const*>(&example_array);
+  MemoryViewer::show_memory(pointer, 24);
 
 /*
   Engine engine = { "Quark engine" };
