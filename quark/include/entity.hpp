@@ -1,5 +1,8 @@
 #pragma once
 
+#include "pyshicscomponent.hpp"
+#include "rendercomponent.hpp"
+
 namespace QUARK {
 
 	struct Entity {
@@ -7,7 +10,8 @@ namespace QUARK {
 		Entity();
 		~Entity();
 
-  	char c {'@'};
+		PhysicsComponent physics;
+		RenderComponent render;
 	};
 
 }
