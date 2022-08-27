@@ -13,9 +13,17 @@ struct NameComponent {
 
 int main() {
 
-  std::array example_array { 1, 2, 4, 8, 16, 32 };
-  auto* pointer = reinterpret_cast<std::uint8_t const*>(&example_array);
-  MemoryViewer::show_memory(pointer, 24);
+  std::vector example_array { 1, 2, 4, 8, 16, 32 };
+
+  // Stack memory
+  MemoryViewer::show_memory_object(example_array);
+
+  // Heap memory
+  MemoryViewer::show_memory_ptr(&example_array[0], 24);
+
+  example_array.push_back(64);
+  MemoryViewer::show_memory_object(example_array);
+  MemoryViewer::show_memory_ptr(&example_array[0], 24);
 
 /*
   Engine engine = { "Quark engine" };

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 #include <cstdio>
 #include <cstdint>
 
@@ -38,6 +39,18 @@ namespace QUARK {
 					memory += width;
 				}
 				std::printf("-------------------------------------------------------------------\n");
+			}
+
+			static void show_memory_object(std::vector<int>& object) {
+  			auto* pointer = reinterpret_cast<std::uint8_t const*>(&object);
+				std::printf("  Object Sizeof  || %ld\n", sizeof(object));
+  			show_memory(pointer, sizeof(object));
+			}
+
+			static void show_memory_ptr(auto const* memory, std::size_t const size) {
+				auto* pointer = reinterpret_cast<std::uint8_t const*>(memory);
+				std::printf("  Object Sizeof  || %ld\n", sizeof(size));
+				show_memory(pointer, size);
 			}
 
 		private:
