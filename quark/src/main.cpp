@@ -11,19 +11,25 @@ struct NameComponent {
   char const name[8];
 };
 
+struct MyVec {
+  char const pre[16] = "#VECTOR-BEGIN##";
+  std::vector<int> vec{};
+  char const post[16] = "#VECTOR-END####";
+};
+
 int main() {
 
-  std::vector example_array { 1, 2, 4, 8, 16, 32 };
+  MyVec example_array { .vec = { 1, 2, 4, 8, 16, 32 } };
 
   // Stack memory
   MemoryViewer::show_memory_object(example_array);
 
   // Heap memory
-  MemoryViewer::show_memory_ptr(&example_array[0], 24);
+  MemoryViewer::show_memory_ptr(&example_array.vec[0], 24);
 
-  example_array.push_back(64);
+  example_array.vec.push_back(64);
   MemoryViewer::show_memory_object(example_array);
-  MemoryViewer::show_memory_ptr(&example_array[0], 24);
+  MemoryViewer::show_memory_ptr(&example_array.vec[0], 48);
 
 /*
   Engine engine = { "Quark engine" };

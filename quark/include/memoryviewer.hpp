@@ -23,10 +23,13 @@ namespace QUARK {
 			static void show_memory_line(std::uint8_t const* memory, std::size_t width = default_width)
 			{
 				std::printf("%16p ||", (void*)memory);
+				for(std::size_t i{}; i < width; ++i) { std::printf(" %02X", memory[i]);	}
+				std::printf(" || ", (void*)memory);
 				for(std::size_t i{}; i < width; ++i) {
-					std::printf(" %02X", memory[i]);
+					auto character = (memory[i] > 31 && memory[i] < 128) ? memory[i] : '.'; // Character filter fix
+					std::printf("%c", character);
 				}
-				std::printf("\n");
+				std::printf(" || \n");
 			}
 
 			static void show_memory(std::uint8_t const* memory, std::size_t const size, std::size_t width = default_width)
@@ -41,7 +44,7 @@ namespace QUARK {
 				std::printf("-------------------------------------------------------------------\n");
 			}
 
-			static void show_memory_object(std::vector<int>& object) {
+			static void show_memory_object(auto const& object) {
   			auto* pointer = reinterpret_cast<std::uint8_t const*>(&object);
 				std::printf("  Object Sizeof  || %ld\n", sizeof(object));
   			show_memory(pointer, sizeof(object));
