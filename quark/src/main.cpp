@@ -8,14 +8,18 @@
 using namespace QUARK;
 
 struct NameComponent {
-  char const name[8] { "noname" };
+  char name[8] { "noname" };
 };
 
 int main() {
 
   Slotmap<NameComponent, 4> names;
-  names.push_back(NameComponent{"Emanuel"});
-
+  MemoryViewer::show_memory_object(names);
+  [[maybe_unused]] auto key = names.push_back(NameComponent{"Emanuel"});
+  std::printf("Insert. Key: (%ld, %ld)\n", key.id, key.generation);
+  MemoryViewer::show_memory_object(names);
+  key = names.push_back(NameComponent{"Testing"});
+  std::printf("Insert. Key: (%ld, %ld)\n", key.id, key.generation);
   MemoryViewer::show_memory_object(names);
 
 /*

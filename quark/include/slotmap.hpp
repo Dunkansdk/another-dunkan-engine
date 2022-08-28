@@ -2,6 +2,8 @@
 
 #include <array>
 #include <cstdint>
+#include <stdexcept>
+#include <cassert>
 
 namespace QUARK {
 
@@ -20,17 +22,72 @@ namespace QUARK {
 		[[nodiscard]] constexpr std::size_t size() 			const noexcept { return m_size; }
 		[[nodiscard]] constexpr std::size_t capacity() 	const noexcept { return Capacity; }
 
+		/*
+		 * value_type&& -> temporal variable (rvalue)
+		 *
+		 */
 		[[nodiscard]] constexpr key_type push_back(value_type&& temp_value) {
-			auto slotid = allocate();
-			return {};
+			auto reserved_id = allocate();
+			auto& slot = m_index[reserved_id];
+
+			// move data
+			m_data[slot.id] = std::move(temp_value);
+			m_erase[slot.id] = reserved_id;
+
+			// key for the user
+			auto key { slot };
+			key.id = reserved_id;
+
+			return key;
 		}
 
-		constexpr void clear() noexcept { freelist_init(); m_generation = 0; }
+		/*
+		 * value_type const& -> lvalue, no temporal value
+		 *
+		 */
+		[[nodiscard]] constexpr key_type push_back(value_type const& ref_value) {
+			push_back(value_type{ref_value});
+		}
+
+		constexpr void clear() noexcept { freelist_init(); }
+
+		constexpr bool erase(key_type key) noexcept {
+			if(!is_valid(key)) return false;
+
+			// Release slot
+			//free(key);
+			return true;
+		}
+
+		[[nodiscard]]constexpr bool is_valid(key_type key) const noexcept {
+			if (key.id >= Capacity || m_index[key.id].generation != key.generation)
+				return false;
+			return true;
+		}
 
 	private:
-		[[nodiscard]] constexpr index_type allocate() noexcept {
+		[[nodiscard]] constexpr index_type allocate() {
+			if (m_size >= Capacity) throw std::runtime_error("No space left in the slotmap");
+			assert(m_freelist < Capacity);
 
-			//m_freelist
+			// Reserve
+			auto slotid = m_freelist;
+			m_freelist = m_index[slotid].id; // Freelist -> first free
+
+			// Init slot
+			auto& slot = m_index[slotid];
+			slot.id = m_size;
+			slot.generation = m_generation;
+
+			// Update space and generation
+			++m_size;
+			++m_generation;
+
+			return slotid;
+		}
+
+		constexpr void free(key_type key) noexcept {
+			assert(is_valid(key));
 		}
 
 		constexpr void freelist_init() noexcept {
