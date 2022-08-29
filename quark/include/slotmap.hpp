@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <cassert>
+#include <iostream>
 
 namespace QUARK {
 
@@ -52,16 +53,13 @@ namespace QUARK {
 		constexpr void clear() noexcept { freelist_init(); }
 
 		constexpr bool erase(key_type key) noexcept {
-			if(!is_valid(key)) return false;
-
-			// Release slot
-			//free(key);
+			if(!is_valid(key)) { return false; }
+			free(key);
 			return true;
 		}
 
 		[[nodiscard]]constexpr bool is_valid(key_type key) const noexcept {
-			if (key.id >= Capacity || m_index[key.id].generation != key.generation)
-				return false;
+			if (key.id >= Capacity || m_index[key.id].generation != key.generation) { return false; }
 			return true;
 		}
 
@@ -88,11 +86,31 @@ namespace QUARK {
 
 		constexpr void free(key_type key) noexcept {
 			assert(is_valid(key));
+
+			auto& slot = m_index[key.id];
+			auto data_id = slot.id; // save id of data slot to check if it is last or not
+
+			// update freelist
+			slot.id = m_freelist;
+			slot.generation = m_generation;
+			m_freelist = key.id;
+
+			// copy data to free slot
+			if (data_id != m_size - 1) {
+      	// data slot is not last, copy last here
+				m_data[data_id] = m_data[m_size - 1];
+				m_erase[data_id] = m_erase[m_size - 1];
+				m_index[m_erase[data_id]].id = data_id;
+			}
+
+			// update size
+			--m_size;
+			++m_generation;
 		}
 
 		constexpr void freelist_init() noexcept {
 			for(index_type i{}; i < m_index.size(); ++i) {
-				m_index[1].id = i + 1;
+				m_index[i].id = i + 1;
 			}
 			m_freelist = 0;
 		}

@@ -13,14 +13,26 @@ struct NameComponent {
 
 int main() {
 
-  Slotmap<NameComponent, 4> names;
-  MemoryViewer::show_memory_object(names);
-  [[maybe_unused]] auto key = names.push_back(NameComponent{"Emanuel"});
-  std::printf("Insert. Key: (%ld, %ld)\n", key.id, key.generation);
-  MemoryViewer::show_memory_object(names);
-  key = names.push_back(NameComponent{"Testing"});
-  std::printf("Insert. Key: (%ld, %ld)\n", key.id, key.generation);
-  MemoryViewer::show_memory_object(names);
+    Slotmap<NameComponent, 4> names;
+    using key_type = Slotmap<NameComponent, 4>::key_type;
+    std::array<key_type, 4> keys;
+
+    MemoryViewer::show_memory_object(names);
+    keys[0] = names.push_back(NameComponent{"ImFirst"});
+    std::printf("Insert. Key: (%d, %d)\n", keys[0].id, keys[0].generation);
+    MemoryViewer::show_memory_object(names);
+
+    keys[1] = names.push_back(NameComponent{"ImSecnd"});
+    std::printf("Insert. Key: (%d, %d)\n", keys[1].id, keys[1].generation);
+    MemoryViewer::show_memory_object(names);
+
+    keys[2] = names.push_back(NameComponent{"ImThird"});
+    std::printf("Insert. Key: (%d, %d)\n", keys[2].id, keys[2].generation);
+    MemoryViewer::show_memory_object(names);
+
+    names.erase(keys[0]);
+    std::printf("Erase. Key: (%d, %d)\n", keys[0].id, keys[0].generation);
+    MemoryViewer::show_memory_object(names);
 
 /*
   Engine engine = { "Quark engine" };
@@ -38,5 +50,5 @@ int main() {
     render_system.update(entity_manager, engine);
   }
 */
-  return 1;
+    return 1;
 }
