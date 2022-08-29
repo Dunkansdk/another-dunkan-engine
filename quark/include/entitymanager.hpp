@@ -1,30 +1,28 @@
 #pragma once
 
-#include <iostream>
 #include <vector>
 #include <entity.hpp>
+#include <slotmap.hpp>
 
-namespace QUARK {
+namespace Quark {
 
-	template <typename Type>
+	template <typename EntityType>
 	struct EntityManager {
+		using TypeProcessFunc = void (*)(EntityType&);
 
-		using TypeProcessFunc = void (*)(Type&);
-
-	public:
 		EntityManager(std::size_t default_size = 100) {
-    	entities_.reserve(default_size);
+    	    m_entities.reserve(default_size);
 		}
 
-		auto& create_entity() { return this->entities_.emplace_back(); }
+		auto& create_entity() { return this->m_entities.emplace_back(); }
 
 		void forall(TypeProcessFunc process) {
-			for(auto& entity : entities_)
+			for(auto& entity : m_entities)
 				process(entity);
 		}
 
 	private:
-		std::vector<Type> entities_{};
+		std::vector<EntityType> m_entities{};
 
 	};
 

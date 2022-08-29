@@ -5,7 +5,7 @@
 #include <cstdio>
 #include <cstdint>
 
-namespace QUARK {
+namespace Quark {
 
 	struct MemoryViewer {
 

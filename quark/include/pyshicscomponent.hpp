@@ -3,7 +3,7 @@
 // Testing component
 //
 
-namespace QUARK {
+namespace Quark {
 
 	struct PhysicsComponent {
 		public:

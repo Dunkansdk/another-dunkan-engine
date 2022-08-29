@@ -2,14 +2,11 @@
 
 #include <entitymanager.hpp>
 
-namespace QUARK {
+namespace Quark {
 
-	struct PhysicsSystem {
+    struct PhysicsSystem {
 
 		public:
-			PhysicsSystem();
-			~PhysicsSystem();
-
 			void update(EntityManager<Entity>& entity_manager);
 
 		private:

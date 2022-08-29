@@ -3,13 +3,10 @@
 #include "pyshicscomponent.hpp"
 #include "rendercomponent.hpp"
 
-namespace QUARK {
+namespace Quark {
 
 	struct Entity {
 	public:
-		Entity();
-		~Entity();
-
 		PhysicsComponent physics;
 		RenderComponent render;
 	};

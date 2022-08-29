@@ -5,9 +5,9 @@
 #include <stdexcept>
 #include <cassert>
 
-namespace QUARK {
+namespace Quark {
 
-	template <typename DataType, typename IndexType = std::uint32_t, std::size_t Capacity = 10>
+	template <typename DataType, std::size_t Capacity = 10, typename IndexType = std::uint32_t>
 	struct Slotmap {
 
 	public:
@@ -15,8 +15,8 @@ namespace QUARK {
 		using index_type 			= IndexType;
 		using gen_type	 			= index_type;
 		using key_type				= struct { index_type id; gen_type generation; };
-		using iterator    		= value_type*;
-		using const_iterator 	= value_type const*;
+		using iterator    			= value_type*;
+		using const_iterator 		= value_type const*;
 
 		constexpr explicit Slotmap() { clear(); }
 
@@ -103,7 +103,7 @@ namespace QUARK {
 
 			// copy data to free slot
 			if (data_id != m_size - 1) {
-      	// data slot is not last, copy last here
+      			// data slot is not last, copy last here
 				m_data[data_id] = m_data[m_size - 1];
 				m_erase[data_id] = m_erase[m_size - 1];
 				m_index[m_erase[data_id]].id = data_id;
@@ -121,9 +121,9 @@ namespace QUARK {
 			m_freelist = 0;
 		}
 
-		index_type 												m_size{};
-		index_type												m_freelist{};
-		gen_type													m_generation{};
+		index_type 							m_size{};
+		index_type							m_freelist{};
+		gen_type							m_generation{};
 		std::array<key_type, Capacity> 		m_index{};
 		std::array<value_type, Capacity> 	m_data{};
 		std::array<index_type, Capacity> 	m_erase{};

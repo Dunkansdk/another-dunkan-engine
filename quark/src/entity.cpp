@@ -1,8 +1,6 @@
 #include <entity.hpp>
 
-namespace QUARK {
+namespace Quark {
 
-  Entity::Entity() {}
-  Entity::~Entity() {}
 
 }

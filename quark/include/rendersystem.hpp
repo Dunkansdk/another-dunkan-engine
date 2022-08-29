@@ -3,7 +3,7 @@
 #include "entitymanager.hpp"
 #include <engine.hpp>
 
-namespace QUARK {
+namespace Quark {
 
 	struct RenderSystem {
 

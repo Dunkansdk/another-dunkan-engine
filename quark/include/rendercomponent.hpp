@@ -3,7 +3,7 @@
 // Testing component
 //
 
-namespace QUARK {
+namespace Quark {
 
 	struct RenderComponent {
 		// Scene node.
