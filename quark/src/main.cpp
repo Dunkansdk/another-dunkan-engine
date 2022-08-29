@@ -20,14 +20,13 @@ struct HealthComponent {
 
 int main() {
 
-    /*
     using ComponentStorageType = ComponentStorage<PhysicsComponent, NameComponent, HealthComponent>;
 
     ComponentStorageType component_storage;
-    std::cout << component_storage.getMask<HealthComponent>() << "\n";
-    std::cout << component_storage.getMask<NameComponent>() << "\n";
-    std::cout << component_storage.getMask<PhysicsComponent>() << "\n";
-*/
+    std::cout << component_storage.get_mask<HealthComponent>() << "\n";
+    std::cout << component_storage.get_mask<NameComponent>() << "\n";
+    std::cout << component_storage.get_mask<PhysicsComponent>() << "\n";
+
 /*
     Engine engine = { "Quark engine" };
     engine.init();
