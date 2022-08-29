@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <stdexcept>
 #include <cassert>
-#include <iostream>
 
 namespace QUARK {
 
@@ -12,10 +11,12 @@ namespace QUARK {
 	struct Slotmap {
 
 	public:
-		using value_type 	= DataType;
-		using index_type 	= std::uint32_t;
-		using gen_type	 	= index_type;
-		using key_type		= struct { index_type id; gen_type generation; };
+		using value_type 			= DataType;
+		using index_type 			= std::uint32_t;
+		using gen_type	 			= index_type;
+		using key_type				= struct { index_type id; gen_type generation; };
+		using iterator    		= value_type*;
+		using const_iterator 	= value_type const*;
 
 		constexpr explicit Slotmap() { clear(); }
 
@@ -47,7 +48,7 @@ namespace QUARK {
 		 *
 		 */
 		[[nodiscard]] constexpr key_type push_back(value_type const& ref_value) {
-			push_back(value_type{ref_value});
+			return push_back(value_type{ref_value});
 		}
 
 		constexpr void clear() noexcept { freelist_init(); }
@@ -62,6 +63,11 @@ namespace QUARK {
 			if (key.id >= Capacity || m_index[key.id].generation != key.generation) { return false; }
 			return true;
 		}
+
+		[[nodiscard]] constexpr iterator  begin() noexcept { return m_data.begin(); }
+		[[nodiscard]] constexpr iterator    end() noexcept { return m_data.begin() + m_size; }
+		[[nodiscard]] constexpr iterator cbegin() const noexcept { return m_data.cbegin(); }
+		[[nodiscard]] constexpr iterator   cend() const noexcept { return m_data.cbegin() + m_size; }
 
 	private:
 		[[nodiscard]] constexpr index_type allocate() {

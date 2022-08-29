@@ -34,6 +34,37 @@ int main() {
     std::printf("Erase. Key: (%d, %d)\n", keys[0].id, keys[0].generation);
     MemoryViewer::show_memory_object(names);
 
+    names.erase(keys[0]);
+    std::printf("Erase. Key: (%d, %d)\n", keys[0].id, keys[0].generation);
+    MemoryViewer::show_memory_object(names);
+
+    names.erase(keys[1]);
+    std::printf("Erase. Key: (%d, %d)\n", keys[1].id, keys[1].generation);
+    MemoryViewer::show_memory_object(names);
+
+    NameComponent n { "#######" };
+    keys[1] = names.push_back(n);
+    std::printf("Insert. Key: (%d, %d)\n", keys[1].id, keys[1].generation);
+    MemoryViewer::show_memory_object(names);
+
+    NameComponent m { "@@@@@@@" };
+    keys[0] = names.push_back(m);
+    std::printf("Insert. Key: (%d, %d)\n", keys[0].id, keys[0].generation);
+    MemoryViewer::show_memory_object(names);
+
+    std::printf("Full traversal\n");
+    for(auto it = names.begin(); it != names.end(); ++it) {
+        std::printf("Item %s\n", it->name);
+    }
+
+    for(auto& component : names) {
+        std::printf("Item %s\n", component.name);
+    }
+
+    for(auto const& component : names) {
+        std::printf("Item %s\n", component.name);
+    }
+
 /*
   Engine engine = { "Quark engine" };
   engine.init();
