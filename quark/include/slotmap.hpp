@@ -7,12 +7,12 @@
 
 namespace QUARK {
 
-	template <typename DataType, std::size_t Capacity>
+	template <typename DataType, typename IndexType = std::uint32_t, std::size_t Capacity = 10>
 	struct Slotmap {
 
 	public:
 		using value_type 			= DataType;
-		using index_type 			= std::uint32_t;
+		using index_type 			= IndexType;
 		using gen_type	 			= index_type;
 		using key_type				= struct { index_type id; gen_type generation; };
 		using iterator    		= value_type*;

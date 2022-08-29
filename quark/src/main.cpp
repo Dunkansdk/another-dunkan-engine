@@ -13,8 +13,8 @@ struct NameComponent {
 
 int main() {
 
-    Slotmap<NameComponent, 4> names;
-    using key_type = Slotmap<NameComponent, 4>::key_type;
+    Slotmap<NameComponent, std::uint32_t, 4> names;
+    using key_type = Slotmap<NameComponent, std::uint32_t, 4>::key_type;
     std::array<key_type, 4> keys;
 
     MemoryViewer::show_memory_object(names);
