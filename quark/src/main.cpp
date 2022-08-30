@@ -1,4 +1,5 @@
-#include <game.hpp>
+#include "game.hpp"
+#include <type_traits>
 
 using namespace Quark;
 
@@ -15,29 +16,29 @@ using TagTypes = METACPP::Typelist<TPlayer, TEnemy, TBullet>;
 // Macro
 void seetype(auto) { std::cout << __PRETTY_FUNCTION__ << "\n"; }
 
+template<typename T>
+struct S {
+    static constexpr bool value { true };
+};
+
+template<typename T>
+struct type_id { using type = T; };
+
+template<std::size_t N, typename... TYPES>
+struct nth_type { static_assert(sizeof...(TYPES) != 0, "ERROR: Typelist with 0 types."); };
+template<std::size_t N, typename... TYPES>
+using nth_type_t = typename nth_type<N, TYPES...>::type;
+template<typename T, typename... TYPES>
+struct nth_type<0, T, TYPES...> : type_id<T> {};
+template<std::size_t N, typename T, typename... TYPES>
+struct nth_type<N, T, TYPES...> : type_id<nth_type_t<N - 1, TYPES...>> {};
+
 int main() {
 
-    using GameType = Game<ComponentTypes, TagTypes>;
-    GameType game;
-
-    seetype(game);
-
-    static_assert(METACPP::is_same_v<int, void> == false);
-    static_assert(METACPP::is_same_v<int, int> == true);
-
-    static_assert(TBullet::id == 2);
-    static_assert(GameType::tags::size() == 3);
-    static_assert(GameType::tags::id<TBullet>() == 1);
-    static_assert(GameType::tags::mask<TEnemy>() == 0b010);
-    static_assert(GameType::tags::mask<TBullet>() == 0b010);
-
-    // Failed Component into TAG_LIST
-    //static_assert(GameType::tags::id<CPhysics>() == 1);
-
-    static_assert(GameType::components::size() == 3);
-    static_assert(GameType::components::id<CRender>() == 1);
-    static_assert(GameType::components::mask<CPhysics>() == 0b010);
-    static_assert(GameType::components::mask<CRender>() == 0b010);
+    seetype(nth_type<0, char, int>{});
+    seetype(nth_type<0, char, int, float>::type{});
+    seetype(nth_type<1, char, int, float>::type{});
+    seetype(nth_type<2, char, int, float>::type{});
 
     return 1;
 }
