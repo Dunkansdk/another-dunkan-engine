@@ -36,6 +36,18 @@ namespace Quark {
         template<std::size_t N, typename T, typename... TYPES>
         struct nth_type<N, T, TYPES...> : type_id<nth_type_t<N - 1, TYPES...>> {};
 
+        /*
+         *
+         */
+        template<typename T, typename... TYPES>
+        struct pos_type { static_assert(sizeof...(TYPES) != 0); };
+        template<typename T, typename... TYPES>
+        constexpr std::size_t pos_type_v = pos_type<T, TYPES...>::value;
+        template<typename T, typename... TYPES>
+        struct pos_type<T, T, TYPES...> : constant<std::size_t, 0> {};
+        template<typename T, typename U, typename... TYPES>
+        struct pos_type<T, U, TYPES...> : constant<std::size_t, 1 + pos_type_v<T, TYPES...>> {};
+
         template<typename... TYPES> // Types = TEnemy, TPlayer, TBullet
         struct Typelist {
             consteval static std::size_t size() noexcept { return sizeof...(TYPES); }
@@ -50,12 +62,7 @@ namespace Quark {
             template<typename T>
                 consteval static std::size_t pos() noexcept {
                     static_assert(contains<T>());
-                    /*for(std::size_t i{}; i < size() - 1; ++i) {
-                        using TypeName = nth_type_t<i, TYPES...>;
-                        if(is_same_v<T, TypeName>)
-                            return i;
-                    }*/
-                    return size() - 1;
+                    return pos_type_v<T, TYPES...>;
                 }
         };
     }
