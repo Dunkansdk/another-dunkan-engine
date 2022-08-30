@@ -16,29 +16,25 @@ using TagTypes = METACPP::Typelist<TPlayer, TEnemy, TBullet>;
 // Macro
 void seetype(auto) { std::cout << __PRETTY_FUNCTION__ << "\n"; }
 
-template<typename T>
-struct S {
-    static constexpr bool value { true };
-};
+template<typename T, T VALUE>
+struct constant { static constexpr T value { VALUE }; };
 
-template<typename T>
-struct type_id { using type = T; };
-
-template<std::size_t N, typename... TYPES>
-struct nth_type { static_assert(sizeof...(TYPES) != 0, "ERROR: Typelist with 0 types."); };
-template<std::size_t N, typename... TYPES>
-using nth_type_t = typename nth_type<N, TYPES...>::type;
 template<typename T, typename... TYPES>
-struct nth_type<0, T, TYPES...> : type_id<T> {};
-template<std::size_t N, typename T, typename... TYPES>
-struct nth_type<N, T, TYPES...> : type_id<nth_type_t<N - 1, TYPES...>> {};
+struct pos_type;
+template<typename T, typename... TYPES>
+struct pos_type<T, T, TYPES...> {
+    constexpr static std::size_t value { 0 };
+};
+template<typename T, typename U, typename... TYPES>
+struct pos_type<T, U, TYPES...> {
+    constexpr static std::size_t value { 1 + pos_type<T, TYPES...>::value };
+};
 
 int main() {
 
-    seetype(nth_type<0, char, int>{});
-    seetype(nth_type<0, char, int, float>::type{});
-    seetype(nth_type<1, char, int, float>::type{});
-    seetype(nth_type<2, char, int, float>::type{});
+    std::cout << pos_type<int, int, void, float>::value << "\n";
+    std::cout << pos_type<void, int, void, float>::value << "\n";
+    std::cout << pos_type<float, int, void, float>::value << "\n";
 
     return 1;
 }
