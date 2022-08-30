@@ -1,12 +1,13 @@
 #pragma once
 
+#include "componentstorage.hpp"
 #include <vector>
 #include <entity.hpp>
 #include <slotmap.hpp>
 
 namespace Quark {
 
-	template <typename EntityType>
+	template <typename EntityType, typename Component0, typename Component1, typename Component2>
 	struct EntityManager {
 		using TypeProcessFunc = void (*)(EntityType&);
 
@@ -23,6 +24,7 @@ namespace Quark {
 
 	private:
 		std::vector<EntityType> m_entities{};
+		ComponentStorage<Component0, Component1, Component2> m_components{};
 
 	};
 

@@ -2,6 +2,7 @@
 
 namespace Quark {
 
+    /*
     void RenderSystem::update(EntityManager<Entity> entity_manager, Engine& engine)
     {
         entity_manager.forall([](Entity& entity) {
@@ -10,5 +11,5 @@ namespace Quark {
         engine.clear_screen();
         engine.end_scene();
     }
-
+*/
 }

@@ -7,10 +7,10 @@ namespace Quark {
     struct PhysicsSystem {
 
 		public:
-			void update(EntityManager<Entity>& entity_manager);
+//			void update(EntityManager<Entity>& entity_manager);
 
 		private:
-			EntityManager<Entity> entity_manager;
+//			EntityManager<Entity> entity_manager;
 
 	};
 

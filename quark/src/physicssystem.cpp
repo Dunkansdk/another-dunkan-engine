@@ -2,7 +2,7 @@
 #include <physicssystem.hpp>
 
 namespace Quark {
-
+/*
     void PhysicsSystem::update(EntityManager<Entity>& entity_manager)
     {
         entity_manager.forall([](Entity& entity)
@@ -12,5 +12,5 @@ namespace Quark {
             entity.physics.z += entity.physics.velocity_z;
         });
     }
-
+*/
 }
