@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstdint>
+#include <tuple>
 
 namespace Quark {
 
@@ -65,11 +66,25 @@ namespace Quark {
                     return pos_type_v<T, TYPES...>;
                 }
         };
+
+        /*
+         * replace
+         */
+        template<template <typename...> class N, typename L>
+        struct replace {};
+        template<template <typename...> class N, typename... TYPES>
+        struct replace<N, Typelist<TYPES...>> : type_id<N<TYPES...>> {};
+        template<template <typename...> class N, typename L>
+        using replace_t = typename replace<N, L>::type;
+
     }
 
     template<typename TAG_LIST> // TAGS = Typelist<TEnemy, TPlayer, TBullet>
     struct tags_traits{
-        using mask_type = cpp_function::templateif_t<TAG_LIST::size() <= 8, uint8_t, uint16_t>;
+        using mask_type = cpp_function::templateif_t<(TAG_LIST::size() <= 8),
+            uint8_t, cpp_function::templateif_t<(TAG_LIST::size() <= 16),
+            uint16_t, uint32_t>
+        >;
 
         consteval static uint8_t size() noexcept { return TAG_LIST::size() ;}
         template<typename TAG>
@@ -84,10 +99,13 @@ namespace Quark {
     template<typename COMPONENTS>
     struct component_traits : tags_traits<COMPONENTS> { };
 
-    template<typename COMPONENTS, typename TAGS>
+    template<typename COMPONENTS, typename TAGS> // COMPONENTS = Typelist<CPhysics, CRender, CHealth>
     struct Game {
         using tags = tags_traits<TAGS>;
         using components = component_traits<COMPONENTS>;
+        using storage_type = cpp_function::replace_t<std::tuple, COMPONENTS>;
+
+        std::tuple<COMPONENTS> m_components{}; // std::tuple<CPhysics, CRender, CHealth>
     };
 
 }
