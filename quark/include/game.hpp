@@ -3,7 +3,7 @@
 
 namespace Quark {
 
-    namespace METACPP {
+    namespace cpp_function {
         /*
          * constant
          */
@@ -11,16 +11,6 @@ namespace Quark {
         struct constant { static constexpr T value { VALUE }; };
         struct false_type : constant<bool, false> {};
         struct true_type : constant<bool, true> {};
-
-        /*
-         * is_same_v
-         */
-        template<typename T, typename U>
-        struct is_same : false_type {};
-        template<typename T>
-        struct is_same<T, T> : true_type {};
-        template<typename T, typename U>
-        constexpr bool is_same_v = is_same<T, U>::value;
 
         /*
          * nth_type
@@ -37,7 +27,7 @@ namespace Quark {
         struct nth_type<N, T, TYPES...> : type_id<nth_type_t<N - 1, TYPES...>> {};
 
         /*
-         *
+         * pos_type_v
          */
         template<typename T, typename... TYPES>
         struct pos_type { static_assert(sizeof...(TYPES) != 0); };
@@ -48,6 +38,16 @@ namespace Quark {
         template<typename T, typename U, typename... TYPES>
         struct pos_type<T, U, TYPES...> : constant<std::size_t, 1 + pos_type_v<T, TYPES...>> {};
 
+        /*
+         * templateif_t
+         */
+        template<bool CONDITION, typename T, typename F>
+        struct IFT : type_id<F> {};
+        template<typename T, typename F>
+        struct IFT<true, T, F> : type_id<T> {};
+        template<bool CONDITION, typename T, typename F>
+        using templateif_t = typename IFT<CONDITION, T, F>::type;
+
         template<typename... TYPES> // Types = TEnemy, TPlayer, TBullet
         struct Typelist {
             consteval static std::size_t size() noexcept { return sizeof...(TYPES); }
@@ -56,7 +56,7 @@ namespace Quark {
             consteval static bool contains() noexcept {
                 // Unfold expression -> (false || is_same_v<T, TYPES> || is_same_v<T, TYPES> || is_same_v<T, TYPES>)
                 // Repeat is_same_v for each ...TYPES
-                return (false || ... || is_same_v<T, TYPES>);
+                return (false || ... || std::is_same_v<T, TYPES>);
             }
 
             template<typename T>
@@ -69,16 +69,16 @@ namespace Quark {
 
     template<typename TAG_LIST> // TAGS = Typelist<TEnemy, TPlayer, TBullet>
     struct tags_traits{
-        consteval static std::size_t size() noexcept { return TAG_LIST::size() ;}
+        using mask_type = cpp_function::templateif_t<TAG_LIST::size() <= 8, uint8_t, uint16_t>;
 
+        consteval static uint8_t size() noexcept { return TAG_LIST::size() ;}
         template<typename TAG>
-        consteval static std::size_t id()   noexcept {
+        consteval static uint8_t id()   noexcept {
             static_assert(TAG_LIST::template contains<TAG>());
             return TAG_LIST::template pos<TAG>();
         }
-
         template<typename TAG>
-        consteval static std::size_t mask() noexcept { return (1 << id<TAG>()) ;}
+        consteval static mask_type mask() noexcept { return (1 << id<TAG>()) ;}
     };
 
     template<typename COMPONENTS>
