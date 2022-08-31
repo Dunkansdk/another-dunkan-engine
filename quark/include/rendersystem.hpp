@@ -1,7 +1,7 @@
 #pragma once
 
-#include "entitymanager.hpp"
-#include <engine.hpp>
+#include "engine/entitymanager.hpp"
+#include "engine/engine.hpp"
 
 namespace Quark {
 

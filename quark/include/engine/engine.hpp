@@ -22,9 +22,9 @@ namespace Quark {
 
 		private:
 			bool m_running;
-      std::string m_name;
+            std::string m_name;
 
-     	sf::RenderWindow m_window;
+     	    sf::RenderWindow m_window;
 
 	};
 

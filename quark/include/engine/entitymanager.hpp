@@ -1,9 +1,9 @@
 #pragma once
 
-#include "componentstorage.hpp"
 #include <vector>
-#include <entity.hpp>
-#include <slotmap.hpp>
+#include "engine/components/componentstorage.hpp"
+#include "engine/entity.hpp"
+#include "engine/utils/slotmap.hpp"
 
 namespace Quark {
 

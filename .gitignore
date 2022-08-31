@@ -2,5 +2,6 @@ build/**
 out/**
 .vs/**
 .cache/**
+.vscode/**
 compile_commands.json
 compile_flags.txt

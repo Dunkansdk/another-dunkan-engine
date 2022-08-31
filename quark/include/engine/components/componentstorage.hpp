@@ -2,8 +2,9 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <slotmap.hpp>
 #include <tuple>
+#include "engine/utils/slotmap.hpp"
+#include "engine/components/traits.hpp"
 
 namespace Quark {
 

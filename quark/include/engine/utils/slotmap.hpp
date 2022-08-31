@@ -121,12 +121,12 @@ namespace Quark {
 			m_freelist = 0;
 		}
 
-		index_type 							m_size{};
-		index_type							m_freelist{};
-		gen_type							m_generation{};
-		std::array<key_type, Capacity> 		m_index{};
-		std::array<value_type, Capacity> 	m_data{};
-		std::array<index_type, Capacity> 	m_erase{};
+		index_type                          m_size{};
+		index_type                          m_freelist{};
+		gen_type                            m_generation{};
+		std::array<key_type, Capacity>      m_index{};
+		std::array<value_type, Capacity>    m_data{};
+		std::array<index_type, Capacity>    m_erase{};
 
 	};
 

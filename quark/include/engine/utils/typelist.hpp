@@ -1,6 +1,6 @@
-#include <iostream>
+#pragma once
+
 #include <cstdint>
-#include <tuple>
 
 namespace Quark {
 
@@ -77,36 +77,6 @@ namespace Quark {
         template<template <typename...> class N, typename L>
         using replace_t = typename replace<N, L>::type;
 
-    }
+    } // namespace cppfunction
 
-    template<typename TAG_LIST> // TAGS = Typelist<TEnemy, TPlayer, TBullet>
-    struct tags_traits{
-
-        using mask_type = cpp_function::templateif_t<(TAG_LIST::size() <= 8),
-            uint8_t, cpp_function::templateif_t<(TAG_LIST::size() <= 16),
-            uint16_t, uint32_t>
-        >;
-
-        consteval static uint8_t size() noexcept { return TAG_LIST::size() ;}
-        template<typename TAG>
-        consteval static uint8_t id()   noexcept {
-            static_assert(TAG_LIST::template contains<TAG>());
-            return TAG_LIST::template pos<TAG>();
-        }
-        template<typename TAG>
-        consteval static mask_type mask() noexcept { return (1 << id<TAG>()) ;}
-    };
-
-    template<typename COMPONENTS>
-    struct component_traits : tags_traits<COMPONENTS> { };
-
-    template<typename COMPONENTS, typename TAGS> // COMPONENTS = Typelist<CPhysics, CRender, CHealth>
-    struct Game {
-        using tags = tags_traits<TAGS>;
-        using components = component_traits<COMPONENTS>;
-        using storage_type = cpp_function::replace_t<std::tuple, COMPONENTS>;
-
-        std::tuple<COMPONENTS> m_components{}; // std::tuple<CPhysics, CRender, CHealth>
-    };
-
-}
+} // namespace Quark
