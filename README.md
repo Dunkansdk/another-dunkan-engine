@@ -1,18 +1,11 @@
 # quark-engine
 Quark Engine
 
+
 ## Unix dependencies
 ```shell
-  sudo apt-get install libudev-dev
-  sudo apt-get install libopenal-dev
-  sudo apt-get install libvorbis-dev
-  sudo apt-get install libsndfile1-dev
-  sudo apt-get install libx11-dev
-  sudo apt-get install libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev
-  sudo apt-get install libfreetype6-dev
+sudo apt-get install libgl1-mesa-dev libudev-dev libopenal-dev libvorbis-dev libsndfile1-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libfreetype6-dev
 ```
-
-
 
 
 ## Configuration and build
