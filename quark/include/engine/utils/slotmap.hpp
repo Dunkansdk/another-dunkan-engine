@@ -1,18 +1,21 @@
 #pragma once
 
 #include <array>
+#include <iterator>
 #include <cstdint>
 #include <stdexcept>
 #include <cassert>
 
+#include <iostream>
+
 namespace Quark {
 
-	template <typename DataType, std::size_t Capacity = 10, typename IndexType = std::uint32_t>
+	template <typename DATA_TYPE, std::size_t CAPACITY = 10, typename INDEX_TYPE = std::uint32_t>
 	struct Slotmap {
 
 	public:
-		using value_type 			= DataType;
-		using index_type 			= IndexType;
+		using value_type 			= DATA_TYPE;
+		using index_type 			= INDEX_TYPE;
 		using gen_type	 			= index_type;
 		using key_type				= struct { index_type id; gen_type generation; };
 		using iterator    			= value_type*;
@@ -21,8 +24,8 @@ namespace Quark {
 		constexpr explicit Slotmap() { clear(); }
 
 		// constexpr = this should be able to be computed at compile time
-		[[nodiscard]] constexpr std::size_t size() 			const noexcept { return m_size; }
-		[[nodiscard]] constexpr std::size_t capacity() 	const noexcept { return Capacity; }
+		[[nodiscard]] constexpr std::size_t size() 		const noexcept { return m_size; }
+		[[nodiscard]] constexpr std::size_t capacity() 	const noexcept { return CAPACITY; }
 
 		/*
 		 * value_type&& -> temporal variable (rvalue)
@@ -51,6 +54,12 @@ namespace Quark {
 			return push_back(value_type{ref_value});
 		}
 
+        [[nodiscard]] constexpr DATA_TYPE& operator[](key_type const& key) {
+            assert(is_valid(key));
+            auto index = m_index[key.id];
+            return m_data[m_size - index.id];
+        }
+
 		constexpr void clear() noexcept { freelist_init(); }
 
 		constexpr bool erase(key_type key) noexcept {
@@ -60,19 +69,19 @@ namespace Quark {
 		}
 
 		[[nodiscard]]constexpr bool is_valid(key_type key) const noexcept {
-			if (key.id >= Capacity || m_index[key.id].generation != key.generation) { return false; }
+			if (key.id >= CAPACITY || m_index[key.id].generation != key.generation) { return false; }
 			return true;
 		}
 
-		[[nodiscard]] constexpr iterator  begin() noexcept { return m_data.begin(); }
-		[[nodiscard]] constexpr iterator    end() noexcept { return m_data.begin() + m_size; }
-		[[nodiscard]] constexpr iterator cbegin() const noexcept { return m_data.cbegin(); }
-		[[nodiscard]] constexpr iterator   cend() const noexcept { return m_data.cbegin() + m_size; }
+		[[nodiscard]] constexpr iterator        begin()     noexcept { return m_data.begin(); }
+		[[nodiscard]] constexpr iterator        end()       noexcept { return m_data.begin() + m_size; }
+		[[nodiscard]] constexpr const_iterator  cbegin()    const noexcept { return m_data.cbegin(); }
+		[[nodiscard]] constexpr const_iterator  cend()      const noexcept { return m_data.cbegin() + m_size; }
 
 	private:
 		[[nodiscard]] constexpr index_type allocate() {
-			if (m_size >= Capacity) throw std::runtime_error("No space left in the slotmap");
-			assert(m_freelist < Capacity);
+			if (m_size >= CAPACITY) throw std::runtime_error("No space left in the slotmap");
+			assert(m_freelist < CAPACITY);
 
 			// Reserve
 			auto slotid = m_freelist;
@@ -124,9 +133,9 @@ namespace Quark {
 		index_type                          m_size{};
 		index_type                          m_freelist{};
 		gen_type                            m_generation{};
-		std::array<key_type, Capacity>      m_index{};
-		std::array<value_type, Capacity>    m_data{};
-		std::array<index_type, Capacity>    m_erase{};
+		std::array<key_type, CAPACITY>      m_index{};
+		std::array<value_type, CAPACITY>    m_data{};
+		std::array<index_type, CAPACITY>    m_erase{};
 
 	};
 
