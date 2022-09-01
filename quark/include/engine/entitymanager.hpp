@@ -24,7 +24,7 @@ namespace Quark {
 
 	private:
 		std::vector<EntityType> m_entities{};
-		ComponentStorage<Component0, Component1, Component2> m_components{};
+		ComponentStorage<cpp_function::Typelist<Component0, Component1, Component2>, cpp_function::Typelist<>> m_components{};
 
 	};
 

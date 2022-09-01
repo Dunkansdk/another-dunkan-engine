@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 namespace Quark {
 
@@ -76,6 +77,12 @@ namespace Quark {
         struct replace<N, Typelist<TYPES...>> : type_id<N<TYPES...>> {};
         template<template <typename...> class N, typename L>
         using replace_t = typename replace<N, L>::type;
+        
+        template<template<class...> class F, class L> struct mp_transform_impl;
+        template<template<class...> class F, template<class...> class L, class... T>
+        struct mp_transform_impl<F, L<T...>> : type_id<L<F<T>...>> {};
+        template<template<class...> class F, class L>
+        using mp_transform = typename mp_transform_impl<F, L>::type;
 
     } // namespace cppfunction
 
