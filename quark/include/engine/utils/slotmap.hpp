@@ -57,7 +57,7 @@ namespace Quark {
         [[nodiscard]] constexpr DATA_TYPE& operator[](key_type const& key) {
             assert(is_valid(key));
             auto index = m_index[key.id];
-            return m_data[m_size - index.id];
+            return m_data[index.id];
         }
 
 		constexpr void clear() noexcept { freelist_init(); }

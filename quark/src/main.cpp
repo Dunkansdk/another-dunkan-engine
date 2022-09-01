@@ -22,8 +22,18 @@ int main() {
     auto& entity1 = entity_manager.create_entity();
     entity_manager.add_component<HealthComponent>(entity1, HealthComponent{.health = 15, .shield = 22});
     entity_manager.add_component<RenderComponent>(entity1);
-    entity_manager.add_component<RenderComponent>(entity1);
+    entity_manager.add_component<NameComponent>(entity1, NameComponent{"qweqwe"});
     print_entity(entity1);
+
+    auto& entity2 = entity_manager.create_entity();
+    entity_manager.add_component<NameComponent>(entity2, NameComponent{"asdasd"});
+    entity_manager.add_component<RenderComponent>(entity2);
+    entity_manager.add_component<RenderComponent>(entity2);
+    print_entity(entity2);
+
+    std::cout << entity_manager.get_component<HealthComponent>(entity1).shield << "\n";
+    std::cout << entity_manager.get_component<NameComponent>(entity1).name << "\n";
+    std::cout << entity_manager.get_component<NameComponent>(entity2).name << "\n";
     
     return 1;
 }
