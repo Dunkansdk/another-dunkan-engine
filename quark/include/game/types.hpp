@@ -9,8 +9,9 @@ struct NameComponent {
 };
 
 struct HealthComponent {
-    std::size_t health{10};
+    int health;
+    int shield;
 };
 
-using EntityManager = Quark::EntityManager<HealthComponent, NameComponent, RenderComponent>;
+using EntityManager = Quark::EntityManager<NameComponent, HealthComponent, RenderComponent>;
 using Entity        = EntityManager::Entity;

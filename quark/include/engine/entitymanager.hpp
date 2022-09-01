@@ -52,15 +52,15 @@ namespace Quark {
     	    m_entities.reserve(default_size);
 		}
 
-        template<typename COMPONENT>
-        COMPONENT& add_component(Entity& entity) {
+        template<typename COMPONENT, typename... INITIAL_TYPES>
+        COMPONENT& add_component(Entity& entity, INITIAL_TYPES&&... values) {
             auto& storage = m_components.template get_storage<COMPONENT>();
             to_key_type<COMPONENT> key;
 
             if(entity.template has_component<COMPONENT>()) {
                 key = entity.template get_component_key<COMPONENT>();
             } else {
-                key = storage.push_back(COMPONENT{});
+                key = storage.push_back(COMPONENT{std::forward<INITIAL_TYPES>(values)...});
                 entity.template add_component<COMPONENT>(key);
             }
 
