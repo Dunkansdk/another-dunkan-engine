@@ -17,21 +17,16 @@ namespace Quark {
         template <typename T> using to_slotmap = Slotmap<T, Capacity>;
         using storage_type = to_tuple<cpp_function::mp_transform<to_slotmap, COMPONENT_LIST>>;
 
-        static_assert(std::is_same_v<storage_type, void>);
+        // static_assert(std::is_same_v<storage_type, void>);
 
         template<typename COMPONENT>
         [[nodiscard]] constexpr auto& get_storage() noexcept {
             constexpr auto id { component_info::template id<COMPONENT>() };
-            return std::get<id>(m_components_tuple);
+            return std::get<id>(m_component_tuple);
         }
 
     private:
-        storage_type m_components_tuple{};
-        // std::tuple<
-        //     Slotmap<Component0, Capacity>,
-        //     Slotmap<Component1, Capacity>,
-        //     Slotmap<Component2, Capacity>
-        // > m_components_tuple{};
+        storage_type m_component_tuple{};
 
     };
 
