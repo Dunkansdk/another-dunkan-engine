@@ -35,6 +35,30 @@ add_subdirectory(
   ${CMAKE_SOURCE_DIR}/build/sfml-build
 )
 
+
+include(FetchContent)
+FetchContent_Declare(
+  imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui
+  GIT_TAG 35b1148efb839381b84de9290d9caf0b66ad7d03
+)
+FetchContent_MakeAvailable(imgui)
+
+FetchContent_Declare(
+  imgui-sfml
+  GIT_REPOSITORY https://github.com/eliasdaler/imgui-sfml
+  GIT_TAG 82dc2033e51b8323857c3ae1cf1f458b3a933c35
+)
+
+message(STATUS "Fetching ImGui-SFML...")
+
+set(IMGUI_DIR ${imgui_SOURCE_DIR})
+set(IMGUI_SFML_FIND_SFML OFF)
+set(IMGUI_SFML_IMGUI_DEMO ON)
+
+FetchContent_MakeAvailable(imgui-sfml)
+
+
 #----------------------------------
 set(SFML_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/sfml-build/include/)
 set(APP_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/)
@@ -45,9 +69,9 @@ include_directories (/usr/include/freetype2)
 # application target
 add_executable (app ${APP_SRC_FILES}) 
 if(WIN32 OR WIN64)
-  target_link_libraries(app sfml-window sfml-system sfml-graphics)
+  target_link_libraries(app sfml-window sfml-system sfml-graphics ImGui-SFML::ImGui-SFML)
 else()
-  target_link_libraries(app sfml-window sfml-system sfml-graphics pthread X11)
+  target_link_libraries(app sfml-window sfml-system sfml-graphics pthread X11 ImGui-SFML::ImGui-SFML)
 endif()
 
 source_group("src" FILES ${APP_SRC_FILES})
