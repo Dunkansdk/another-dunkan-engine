@@ -1,39 +1,46 @@
-#include <iostream>
-#include "engine/entitymanager.hpp"
-#include "game/types.hpp"
+#include "imgui.h" // necessary for ImGui::*, imgui-SFML.h doesn't include imgui.h
 
-void print_entity(Entity const& entity) {
-    std::cout << entity.has_component<NameComponent>();
-    std::cout << entity.has_component<RenderComponent>();
-    std::cout << entity.has_component<HealthComponent>();
-    std::cout << "\n";
-}
+#include "imgui-SFML.h" // for ImGui::SFML::* functions and SFML-specific overloads
+
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/Window/Event.hpp>
 
 int main() {
+    sf::RenderWindow window(sf::VideoMode(800, 600), "ImGui + SFML = <3");
+    window.setFramerateLimit(60);
+    ImGui::SFML::Init(window);
 
-    // using component_types = Quark::cpp_function::Typelist<NameComponent, HealthComponent, RenderComponent>;
-    // using tag_types = Quark::cpp_function::Typelist<>;
-    // using ComponentStorageType = Quark::ComponentStorage<component_types, tag_types, 10>;
-    // ComponentStorageType component_storage;
+    sf::CircleShape shape(100.f);
+    shape.setFillColor(sf::Color::Green);
 
-    EntityManager entity_manager;
-    Entity entity;
+    sf::Clock deltaClock;
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            ImGui::SFML::ProcessEvent(event);
 
-    auto& entity1 = entity_manager.create_entity();
-    entity_manager.add_component<HealthComponent>(entity1, HealthComponent{.health = 15, .shield = 22});
-    entity_manager.add_component<RenderComponent>(entity1);
-    entity_manager.add_component<NameComponent>(entity1, NameComponent{"qweqwe"});
-    print_entity(entity1);
+            if (event.type == sf::Event::Closed) {
+                window.close();
+            }
+        }
 
-    auto& entity2 = entity_manager.create_entity();
-    entity_manager.add_component<NameComponent>(entity2, NameComponent{"asdasd"});
-    entity_manager.add_component<RenderComponent>(entity2);
-    entity_manager.add_component<RenderComponent>(entity2);
-    print_entity(entity2);
+        ImGui::SFML::Update(window, deltaClock.restart());
 
-    std::cout << entity_manager.get_component<HealthComponent>(entity1).shield << "\n";
-    std::cout << entity_manager.get_component<NameComponent>(entity1).name << "\n";
-    std::cout << entity_manager.get_component<NameComponent>(entity2).name << "\n";
-    
-    return 1;
+        ImGui::ShowDemoWindow();
+
+        ImGui::Begin("Hello, world!");
+        ImGui::Button("Look at this pretty button");
+        ImGui::End();
+
+        window.clear();
+        window.draw(shape);
+        ImGui::SFML::Render(window);
+        window.display();
+    }
+
+    ImGui::SFML::Shutdown();
+
+    return 0;
 }
