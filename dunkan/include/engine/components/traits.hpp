@@ -2,7 +2,7 @@
 
 #include "engine/utils/typelist.hpp"
 
-namespace Quark {
+namespace ADE {
 
     /**
      * Selects the smallest unsigned type for a mask to have enough space
@@ -12,9 +12,9 @@ namespace Quark {
      */
     template<typename LIST>
     using select_smallest_mask_type_t =
-        cpp_function::templateif_t<(LIST::size() <= 8), uint8_t,
-        cpp_function::templateif_t<(LIST::size() <= 16), uint16_t,
-        cpp_function::templateif_t<(LIST::size() <= 32), uint32_t,
+        META_TYPES::templateif_t<(LIST::size() <= 8), uint8_t,
+        META_TYPES::templateif_t<(LIST::size() <= 16), uint16_t,
+        META_TYPES::templateif_t<(LIST::size() <= 32), uint32_t,
         uint64_t>
         >
     >;

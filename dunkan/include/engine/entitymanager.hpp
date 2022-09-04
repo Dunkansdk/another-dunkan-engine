@@ -3,21 +3,21 @@
 #include <vector>
 #include "engine/components/componentstorage.hpp"
 
-namespace Quark {
+namespace ADE {
 
 	template <typename Component0, typename Component1, typename Component2, std::size_t CAPACITY = 10>
 	struct EntityManager {
         struct Entity;
 
 		using type_process_func     = void (*)(Entity&);
-        using component_storage_t   = ComponentStorage<cpp_function::Typelist<Component0, Component1, Component2>, cpp_function::Typelist<>>;
-        using components_temp       = cpp_function::Typelist<Component0, Component1, Component2>;
+        using component_storage_t   = ComponentStorage<META_TYPES::Typelist<Component0, Component1, Component2>, META_TYPES::Typelist<>>;
+        using components_temp       = META_TYPES::Typelist<Component0, Component1, Component2>;
         template <typename T>
         using to_key_type           = typename Slotmap<T, CAPACITY>::key_type;
 
         struct Entity {
-            using key_type_list = cpp_function::mp_transform<to_key_type, components_temp>;
-            using key_storage_t = cpp_function::replace_t<std::tuple, key_type_list>;
+            using key_type_list = META_TYPES::mp_transform<to_key_type, components_temp>;
+            using key_storage_t = META_TYPES::replace_t<std::tuple, key_type_list>;
             
             template <typename COMPONENT>
             void add_component(to_key_type<COMPONENT> key) {

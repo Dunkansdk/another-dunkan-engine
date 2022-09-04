@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-namespace Quark {
+namespace ADE {
 
 	template <typename DATA_TYPE, std::size_t CAPACITY = 10, typename INDEX_TYPE = std::uint32_t>
 	struct Slotmap {

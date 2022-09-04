@@ -3,16 +3,14 @@
 #include <cstdint>
 #include <type_traits>
 
-namespace Quark {
+namespace ADE {
 
-    namespace cpp_function {
+    namespace META_TYPES {
         /*
          * constant
          */
         template<typename T, T VALUE>
         struct constant { static constexpr T value { VALUE }; };
-        struct false_type : constant<bool, false> {};
-        struct true_type : constant<bool, true> {};
 
         /*
          * nth_type

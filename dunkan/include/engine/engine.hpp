@@ -3,7 +3,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 
-namespace Quark {
+namespace ADE {
 
 	struct Engine {
 		public:

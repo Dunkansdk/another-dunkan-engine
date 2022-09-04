@@ -1,6 +1,6 @@
 #include "engine/engine.hpp"
 
-namespace Quark {
+namespace ADE {
 
     Engine::Engine() {
         m_name = "Default title";

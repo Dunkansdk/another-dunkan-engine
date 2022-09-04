@@ -13,5 +13,5 @@ struct HealthComponent {
     int shield;
 };
 
-using EntityManager = Quark::EntityManager<NameComponent, HealthComponent, RenderComponent>;
+using EntityManager = ADE::EntityManager<NameComponent, HealthComponent, RenderComponent>;
 using Entity        = EntityManager::Entity;

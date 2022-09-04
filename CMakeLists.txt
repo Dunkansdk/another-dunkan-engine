@@ -9,4 +9,4 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY
     ${CMAKE_SOURCE_DIR}/lib/${CMAKE_BUILD_TYPE}/)
 
 project (SFMLCMAKE C CXX)
-add_subdirectory ("quark")
+add_subdirectory ("dunkan")
