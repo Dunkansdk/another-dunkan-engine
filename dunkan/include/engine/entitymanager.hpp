@@ -5,13 +5,13 @@
 
 namespace ADE {
 
-	template <typename Component0, typename Component1, typename Component2, std::size_t CAPACITY = 10>
+	template <typename COMPONENT_LIST, typename TAG_LIST = META_TYPES::Typelist<>, std::size_t CAPACITY = 10>
 	struct EntityManager {
         struct Entity;
 
 		using type_process_func     = void (*)(Entity&);
-        using component_storage_t   = ComponentStorage<META_TYPES::Typelist<Component0, Component1, Component2>, META_TYPES::Typelist<>>;
-        using components_temp       = META_TYPES::Typelist<Component0, Component1, Component2>;
+        using component_storage_t   = ComponentStorage<COMPONENT_LIST, TAG_LIST>;
+        using components_temp       = COMPONENT_LIST;
         template <typename T>
         using to_key_type           = typename Slotmap<T, CAPACITY>::key_type;
 
@@ -67,13 +67,13 @@ namespace ADE {
             return storage[key];
         }
 
-        template<typename COMPONENT>
-        COMPONENT get_component(Entity& entity) {
-            assert(entity.template has_component<COMPONENT>());
-            auto& storage = m_components.template get_storage<COMPONENT>();
-            to_key_type<COMPONENT> key = entity.template get_component_key<COMPONENT>();
-            return storage[key];
-        }
+        // template<typename COMPONENT>
+        // COMPONENT& get_component(Entity& entity) {
+        //     assert(entity.template has_component<COMPONENT>());
+        //     auto& storage = m_components.template get_storage<COMPONENT>();
+        //     to_key_type<COMPONENT> key = entity.template get_component_key<COMPONENT>();
+        //     return storage[key];
+        // }
 
 		auto& create_entity() { return this->m_entities.emplace_back(); }
 

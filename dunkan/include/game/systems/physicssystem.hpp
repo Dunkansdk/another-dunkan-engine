@@ -4,9 +4,8 @@
 
 struct PhysicsSystem {
 
-    void update(EntityManager& entity_manager) {
-        entity_manager.forall([](Entity&) {
-            
-        })
-    }
-}
+    void update(EntityManager& entity_manager);
+
+};
+
+

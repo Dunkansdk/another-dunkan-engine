@@ -6,7 +6,6 @@
 namespace ADE {
 
 	struct Engine {
-		public:
 			Engine();
 			Engine(const std::string&);
 			virtual ~Engine();
