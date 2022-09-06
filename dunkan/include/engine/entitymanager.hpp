@@ -127,15 +127,15 @@ namespace ADE {
         template<typename T, typename TFunc>
         void expandCall(Entity& entity, TFunc&& process) {
             using to_helper = META_TYPES::replace_t<ExpandCallHelper, T>;
-            to_helper::call(entity, process);
+            to_helper::call(entity, *this, process);
         }
 
         template<typename... Types>
         struct ExpandCallHelper
         {
             template<typename TFunc>
-            void call(Entity& entity, TFunc&& process) {
-                process(entity, this.template get_component<Types>(entity)...);
+            static void call(Entity& entity, auto& entity_manager, TFunc&& process) {
+                process(entity, entity_manager.template get_component<Types>(entity)...);
             }
         };
 
