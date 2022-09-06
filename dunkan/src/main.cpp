@@ -4,6 +4,10 @@
 #include <iostream>
 
 #include "engine/entitymanager.hpp"
+#include "engine/utils/typelist.hpp"
+#include "game/components/namecomponent.hpp"
+#include "game/components/physicscomponent.hpp"
+#include "game/components/rendercomponent.hpp"
 #include "game/imguiconfig.hpp"
 #include "game/types.hpp"
 
@@ -12,6 +16,7 @@ void print_entity(Entity const& entity) {
     std::cout << entity.has_component<RenderComponent>();
     std::cout << entity.has_component<NameComponent>();
     std::cout << "\n";
+    std::cout << "Expand Variadic Template: has_components\n<PhysicsComponent, NameComponent, RenderComponent> -> " << entity.has_components<PhysicsComponent, NameComponent, RenderComponent>() << "\n";
 }
 
 void game_entities() {
