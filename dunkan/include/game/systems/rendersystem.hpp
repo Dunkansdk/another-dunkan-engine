@@ -1,11 +1,11 @@
 #pragma once
 
+#include "SFML/Graphics/RenderWindow.hpp"
 #include "game/types.hpp"
-#include "engine/engine.hpp"
 
 struct RenderSystem {
 
-    void update(EntityManager&);
+    void update(EntityManager&, sf::RenderWindow&);
 
 };
 
