@@ -2,10 +2,6 @@
 
 void PhysicsSystem::update(EntityManager& entity_manager) 
 {
-    entity_manager.forall([](Entity& entity)
-    {
-        
-    });
 }
 
 

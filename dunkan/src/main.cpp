@@ -8,15 +8,15 @@
 #include "game/components/namecomponent.hpp"
 #include "game/components/physicscomponent.hpp"
 #include "game/components/rendercomponent.hpp"
-#include "game/imguiconfig.hpp"
 #include "game/types.hpp"
+#include "game/systems/rendersystem.hpp"
 
 void print_entity(Entity const& entity) {
     std::cout << entity.has_component<PhysicsComponent>();
     std::cout << entity.has_component<RenderComponent>();
     std::cout << entity.has_component<NameComponent>();
     std::cout << "\n";
-    std::cout << "Expand Variadic Template: has_components\n<PhysicsComponent, NameComponent, RenderComponent> -> " << entity.has_components<PhysicsComponent, NameComponent, RenderComponent>() << "\n";
+    //std::cout << "Expand Variadic Template: has_components\n<PhysicsComponent, NameComponent, RenderComponent> -> " << entity.has_components<PhysicsComponent, NameComponent, RenderComponent>() << "\n";
 }
 
 void game_entities(EntityManager& entity_manager, Entity& entity) {
@@ -33,7 +33,9 @@ void game_entities(EntityManager& entity_manager, Entity& entity) {
     entity_manager.add_component<RenderComponent>(entity2);
     print_entity(entity2);
 
-
+    bool success = entity_manager.erase_component<NameComponent>(entity2);
+    print_entity(entity2);
+    std::cout << "Removed component: " << success << "\n";
 
     std::cout << "Entity 1: \n";
     std::cout << "PhysicsComponent&.x -> " << physics_component_1.x << "\n";
@@ -49,32 +51,23 @@ int main() {
 
     EntityManager entity_manager;
     Entity entity;
-    // Debugger Game Entities
     game_entities(entity_manager, entity);
 
-    using RenderSystem_t = ADE::META_TYPES::Typelist<RenderComponent, NameComponent>;
 
+    RenderSystem render_system {};
 
     sf::Clock deltaClock;
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
 
-            entity_manager.forEntitiesMatching<RenderSystem_t> 
-                ([](auto, auto& render_component, auto& name_component)
-                {
-                    std::cout << name_component.name << "\n";
-                });
-            if (event.type == sf::Event::Closed) {
-                window.close();
-            }
+            // Entity System Test.
+            render_system.update(entity_manager);
+
+            window.clear();
+            window.display();
         }
-
-        window.clear();
-        // window.draw();
-        window.display();
     }
-
 
     return 0;
 }

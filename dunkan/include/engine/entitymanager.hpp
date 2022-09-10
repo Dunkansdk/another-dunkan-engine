@@ -6,11 +6,12 @@
 
 namespace ADE {
 
-	template <typename COMPONENT_LIST, typename TAG_LIST = META_TYPES::Typelist<>, std::size_t CAPACITY = 10>
-	struct EntityManager {
+    template <typename COMPONENT_LIST, typename TAG_LIST = META_TYPES::Typelist<>, std::size_t CAPACITY = 10>
+    struct EntityManager {
+
         struct Entity;
 
-		using type_process_func     = void (*)(Entity&);
+	using type_process_func     = void (*)(Entity&);
         using component_storage_t   = ComponentStorage<COMPONENT_LIST, TAG_LIST>;
         using components_temp       = COMPONENT_LIST;
         template <typename T>
@@ -39,22 +40,10 @@ namespace ADE {
                 return std::get<to_key_type<COMPONENT>>(m_component_keys);
             }
 
-            template <typename... Types>
-            bool has_components() const noexcept
-            {
-                return ((has_component<Types>()) && ...);
+            template <typename COMPONENT>
+            void erase_component(to_key_type<COMPONENT> key) {
+                m_component_mask &= component_storage_t::component_info::template mask<COMPONENT>();
             }
-
-            template <typename... Types>
-            bool has_components(META_TYPES::Typelist<Types...>) const noexcept
-            {
-                std::cout << "Hola";
-                bool process[] = {
-                    ((has_components<Types>()) && ...)
-                };
-                return (bool)process;
-            }
-
 
         private:
             std::size_t id{next_id++};
@@ -66,22 +55,19 @@ namespace ADE {
 
         };
 
-		EntityManager(std::size_t default_size = 100) {
-    	    m_entities.reserve(default_size);
-		}
+        EntityManager(std::size_t default_size = 100) {
+            m_entities.reserve(default_size);
+	}
 
         template<typename COMPONENT, typename... INITIAL_TYPES>
         COMPONENT& add_component(Entity& entity, INITIAL_TYPES&&... values) {
-            auto& storage = m_components.template get_storage<COMPONENT>();
-            to_key_type<COMPONENT> key;
-
             if(entity.template has_component<COMPONENT>()) {
-                key = entity.template get_component_key<COMPONENT>();
-            } else {
-                key = storage.push_back(COMPONENT{std::forward<INITIAL_TYPES>(values)...});
-                entity.template add_component<COMPONENT>(key);
+                return get_component<COMPONENT>(entity);
             }
-
+            // TODO: Create function create_new_component private
+            auto& storage = m_components.template get_storage<COMPONENT>();
+            to_key_type<COMPONENT> key = storage.push_back(COMPONENT{std::forward<INITIAL_TYPES>(values)...});
+            entity.template add_component<COMPONENT>(key);
             return storage[key];
         }
 
@@ -93,53 +79,45 @@ namespace ADE {
             return storage[key];
         }
 
-		auto& create_entity() { return this->m_entities.emplace_back(); }
+        template<typename COMPONENT>
+        bool erase_component(Entity& entity) {
+            if(!entity.template has_component<COMPONENT>()) return false;
+            auto& storage = m_components.template get_storage<COMPONENT>();
+            to_key_type<COMPONENT> key = entity.template get_component_key<COMPONENT>();
+            entity.template erase_component<COMPONENT>(key);
+            return storage.erase(key);
+        }
 
-		void forall(type_process_func process) {
-			for(auto& entity : m_entities)
-				process(entity);
-		}
+	auto& create_entity() { return this->m_entities.emplace_back(); }
 
         template<typename TFunc>
-        void forEntities(TFunc&& process) {
+        void forall(TFunc&& process) {
             for(auto& entity : m_entities) {
                 process(entity);
             }
         }
 
-        template<typename T, typename TFunc>
-        void forEntitiesMatching(TFunc&& process) {
-            forEntities([this, &process](Entity& entity)
-            {
-                // validate signature
-               // if(entity.has_components)
-                expandCall<T>(entity, process);
-            });
+        /**
+         * typename C -> Typelist<Components...>
+         * typename T -> Typelist<Tags...>
+         */
+        template<typename C, typename T>
+        void foreach(auto&& process) {
+            foreach_impl(process, C{}, T{});
         }
 
-	private:
-		std::vector<Entity> m_entities{};
-		component_storage_t m_components{};
+    private:
+        std::vector<Entity> m_entities{};
+	component_storage_t m_components{};
 
-        template<typename... Types>
-        struct ExpandCallHelper;
-
-        template<typename T, typename TFunc>
-        void expandCall(Entity& entity, TFunc&& process) {
-            using to_helper = META_TYPES::replace_t<ExpandCallHelper, T>;
-            to_helper::call(entity, *this, process);
-        }
-
-        template<typename... Types>
-        struct ExpandCallHelper
-        {
-            template<typename TFunc>
-            static void call(Entity& entity, auto& entity_manager, TFunc&& process) {
-                process(entity, entity_manager.template get_component<Types>(entity)...);
+        template <typename... C, typename... T>
+        void foreach_impl(auto&& process, META_TYPES::Typelist<C...>, META_TYPES::Typelist<T...>) {
+            for(auto& entity : m_entities) {
+                auto has_components = (true && ... && entity.template has_component<C>());
+                if(has_components)
+                    process(entity, get_component<C>(entity)...);
             }
-        };
-
-	};
-
+        }
+    };
 
 }

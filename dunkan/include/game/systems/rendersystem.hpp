@@ -5,8 +5,7 @@
 
 struct RenderSystem {
 
-    // TODO: Replace ADE::Engine.
-    void update(EntityManager&, ADE::Engine&);
+    void update(EntityManager&);
 
 };
 
