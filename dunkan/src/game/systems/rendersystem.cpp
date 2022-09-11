@@ -6,10 +6,12 @@ using RenderSystem_c = ADE::META_TYPES::Typelist<RenderComponent, PhysicsCompone
 using RenderSystem_t = ADE::META_TYPES::Typelist<>;
 
 void RenderSystem::update(EntityManager& entity_manager, /*test*/sf::RenderWindow& window) {
+    window.clear();
     entity_manager.foreach<RenderSystem_c, RenderSystem_t>
     ([&](auto& entity, RenderComponent& render, PhysicsComponent& physics)
     {
         render.circle.setOrigin(physics.x, physics.y);
         window.draw(render.circle);
     });
+    window.display();
 }

@@ -11,13 +11,13 @@ namespace ADE {
 
         struct Entity;
 
-        using component_storage_t   = ComponentStorage<COMPONENT_LIST, TAG_LIST>;
-        using components_temp       = COMPONENT_LIST;
         template <typename T>
         using to_key_type           = typename Slotmap<T, CAPACITY>::key_type;
+        using component_storage_t   = ComponentStorage<COMPONENT_LIST, TAG_LIST, CAPACITY>;
+        using supported_components  = COMPONENT_LIST;
 
         struct Entity {
-            using key_type_list = META_TYPES::mp_transform<to_key_type, components_temp>;
+            using key_type_list = META_TYPES::mp_transform<to_key_type, COMPONENT_LIST>;
             using key_storage_t = META_TYPES::replace_t<std::tuple, key_type_list>;
 
             template <typename COMPONENT>
@@ -26,7 +26,6 @@ namespace ADE {
                 std::get<to_key_type<COMPONENT>>(m_component_keys) = key;
             }
 
-            // 0101 & 0001 -> 0001
             template <typename COMPONENT>
             bool has_component() const noexcept {
                 auto mask = component_storage_t::component_info::template mask<COMPONENT>();
@@ -41,9 +40,7 @@ namespace ADE {
 
             template <typename COMPONENT>
             void erase_component(to_key_type<COMPONENT> key) {
-                std::cout << m_component_mask << "\n";
                 m_component_mask ^= component_storage_t::component_info::template mask<COMPONENT>();
-                std::cout << m_component_mask << "\n";
             }
 
         private:
@@ -89,6 +86,10 @@ namespace ADE {
             return storage.erase(key);
         }
 
+        bool erase_entity(Entity& entity) {
+            return erase_components_impl(entity, COMPONENT_LIST{});
+        }
+
 	    auto& create_entity() { return this->m_entities.emplace_back(); }
 
         template<typename TFunc>
@@ -107,9 +108,13 @@ namespace ADE {
             foreach_impl(process, C{}, T{});
         }
 
+        std::size_t get_entities_count() const noexcept {
+            return m_entities.size();
+        }
+
     private:
         std::vector<Entity> m_entities{};
-	component_storage_t m_components{};
+	    component_storage_t m_components{};
 
         template <typename... C, typename... T>
         void foreach_impl(auto&& process, META_TYPES::Typelist<C...>, META_TYPES::Typelist<T...>) {
@@ -118,6 +123,11 @@ namespace ADE {
                 if(has_components)
                     process(entity, get_component<C>(entity)...);
             }
+        }
+
+        template <typename... C>
+        bool erase_components_impl(Entity& entity, META_TYPES::Typelist<C...>) {
+            return (erase_component<C>(entity),...);
         }
     };
 
