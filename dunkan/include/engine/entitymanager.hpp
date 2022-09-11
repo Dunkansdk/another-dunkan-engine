@@ -11,7 +11,6 @@ namespace ADE {
 
         struct Entity;
 
-	using type_process_func     = void (*)(Entity&);
         using component_storage_t   = ComponentStorage<COMPONENT_LIST, TAG_LIST>;
         using components_temp       = COMPONENT_LIST;
         template <typename T>
@@ -42,7 +41,9 @@ namespace ADE {
 
             template <typename COMPONENT>
             void erase_component(to_key_type<COMPONENT> key) {
-                m_component_mask &= component_storage_t::component_info::template mask<COMPONENT>();
+                std::cout << m_component_mask << "\n";
+                m_component_mask ^= component_storage_t::component_info::template mask<COMPONENT>();
+                std::cout << m_component_mask << "\n";
             }
 
         private:
@@ -57,7 +58,7 @@ namespace ADE {
 
         EntityManager(std::size_t default_size = 100) {
             m_entities.reserve(default_size);
-	}
+        }
 
         template<typename COMPONENT, typename... INITIAL_TYPES>
         COMPONENT& add_component(Entity& entity, INITIAL_TYPES&&... values) {
@@ -88,7 +89,7 @@ namespace ADE {
             return storage.erase(key);
         }
 
-	auto& create_entity() { return this->m_entities.emplace_back(); }
+	    auto& create_entity() { return this->m_entities.emplace_back(); }
 
         template<typename TFunc>
         void forall(TFunc&& process) {

@@ -47,9 +47,9 @@ void game_entities(EntityManager& entity_manager, Entity& entity) {
     entity_manager.add_component<NameComponent>(entity3, NameComponent{"qweqwe"});
     print_entity(entity3);
 
-    // bool success = entity_manager.erase_component<NameComponent>(entity2);
-    // print_entity(entity2);
-    // std::cout << "Removed component: " << success << "\n";
+    bool success = entity_manager.erase_component<NameComponent>(entity2);
+    print_entity(entity2);
+    std::cout << "Removed component: " << success << "\n";
 }
 
 int main() {
