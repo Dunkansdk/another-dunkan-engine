@@ -9,7 +9,7 @@
 
 namespace ADE {
 
-    template <typename COMPONENT_LIST, typename TAG_LIST = META_TYPES::Typeltypename TYPESist<>, std::size_t Capacity = 10>
+    template <typename COMPONENT_LIST, typename TAG_LIST, std::size_t Capacity = 10>
     struct ComponentStorage {
         using tag_info = tag_traits<TAG_LIST>;
         using component_info = component_traits<COMPONENT_LIST>;
