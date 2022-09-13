@@ -41,7 +41,7 @@ namespace ADE {
             }
 
             template <typename COMPONENT>
-            void erase_component(to_key_type<COMPONENT> key) {
+            void erase_component() {
                 m_component_mask ^= component_storage_t::component_info::template mask<COMPONENT>();
             }
 
@@ -92,12 +92,13 @@ namespace ADE {
             if(!entity.template has_component<COMPONENT>()) return false;
             auto& storage = m_components.template get_storage<COMPONENT>();
             to_key_type<COMPONENT> key = entity.template get_component_key<COMPONENT>();
-            entity.template erase_component<COMPONENT>(key);
+            entity.template erase_component<COMPONENT>();
             return storage.erase(key);
         }
 
         void kill(Entity& entity) {
             entity.kill();
+            erase_components_impl(entity, COMPONENT_LIST{});
         }
 
 	    auto& create_entity() { return this->m_entities.emplace_back(); }
@@ -125,11 +126,8 @@ namespace ADE {
         void refresh() {
             m_entities.erase(
                 std::remove_if(m_entities.begin(), m_entities.end(),
-                [this](const Entity& entity) {
-                    erase_components_impl(entity, COMPONENT_LIST{});
-                    return !entity.is_alive();
-                }),
-            m_entities.end());
+                [](const Entity& entity) { return !entity.is_alive(); }),
+                m_entities.end());
         }
 
     private:

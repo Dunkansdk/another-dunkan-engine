@@ -63,12 +63,12 @@ void update(MyManager& entity_manager, float time, sf::RenderWindow& window) {
         auto& acc = entity_manager.add_component<CAcceleration>(entity).value;
         set_rnd_vec2(acc, 0.4f);
         auto& life = entity_manager.add_component<CLife>(entity).value;
-        life = get_random(13.f, 60.f);
+        life = get_random(13.f, 30.f);
         auto& shape = entity_manager.add_component<CRender>(entity).shape;
         shape.setFillColor(sf::Color(
             static_cast<int>(get_random(150, 255)),
             static_cast<int>(get_random(30, 70)),
-            static_cast<int>(get_random(30, 70)), 255
+            static_cast<int>(get_random(30, 70)), 100
         ));
     }
 
@@ -96,7 +96,7 @@ void update(MyManager& entity_manager, float time, sf::RenderWindow& window) {
         cLife.value -= time * 2.f;
 
         if(cLife.value <= 0)
-            entity_manager.erase_entity(entity);
+            entity_manager.kill(entity);
     });
 
     entity_manager.foreach<SGrow, EMPTY_TAG>

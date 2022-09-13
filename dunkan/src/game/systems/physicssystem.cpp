@@ -13,7 +13,7 @@ void PhysicsSystem::update(EntityManager& entity_manager)
         physics.z += physics.velocity_z;
 
         if(physics.x <= -90.f) {
-            entity_manager.erase_entity(entity);
+            entity_manager.kill(entity);
         }
     });
 }
