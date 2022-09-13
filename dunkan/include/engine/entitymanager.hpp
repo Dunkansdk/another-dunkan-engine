@@ -1,5 +1,6 @@
 #pragma once
 
+#include <chrono>
 #include <vector>
 #include "engine/components/componentstorage.hpp"
 #include "engine/utils/typelist.hpp"
@@ -17,6 +18,7 @@ namespace ADE {
         using supported_components  = COMPONENT_LIST;
 
         struct Entity {
+            std::size_t id{next_id++};
             using key_type_list = META_TYPES::mp_transform<to_key_type, COMPONENT_LIST>;
             using key_storage_t = META_TYPES::replace_t<std::tuple, key_type_list>;
 
@@ -43,11 +45,19 @@ namespace ADE {
                 m_component_mask ^= component_storage_t::component_info::template mask<COMPONENT>();
             }
 
+            bool is_alive() const noexcept {
+                return this->isAlive;
+            }
+
+            void kill() noexcept {
+                this->isAlive = false;
+            }
+
         private:
-            std::size_t id{next_id++};
             typename component_storage_t::component_info::mask_type m_component_mask{};
             typename component_storage_t::tag_info::mask_type       m_tag_mask{};
             key_storage_t m_component_keys {};
+            bool isAlive{true};
 
             inline static std::size_t next_id{1};
 
@@ -86,8 +96,8 @@ namespace ADE {
             return storage.erase(key);
         }
 
-        bool erase_entity(Entity& entity) {
-            return erase_components_impl(entity, COMPONENT_LIST{});
+        void kill(Entity& entity) {
+            entity.kill();
         }
 
 	    auto& create_entity() { return this->m_entities.emplace_back(); }
@@ -112,16 +122,29 @@ namespace ADE {
             return m_entities.size();
         }
 
+        void refresh() {
+            m_entities.erase(
+                std::remove_if(m_entities.begin(), m_entities.end(),
+                [this](const Entity& entity) {
+                    erase_components_impl(entity, COMPONENT_LIST{});
+                    return !entity.is_alive();
+                }),
+            m_entities.end());
+        }
+
     private:
         std::vector<Entity> m_entities{};
 	    component_storage_t m_components{};
+        std::size_t size{0}, size_next{0};
 
         template <typename... C, typename... T>
         void foreach_impl(auto&& process, META_TYPES::Typelist<C...>, META_TYPES::Typelist<T...>) {
             for(auto& entity : m_entities) {
-                auto has_components = (true && ... && entity.template has_component<C>());
-                if(has_components)
-                    process(entity, get_component<C>(entity)...);
+                if(entity.is_alive()) {
+                    auto has_components = (true && ... && entity.template has_component<C>());
+                    if(has_components)
+                        process(entity, get_component<C>(entity)...);
+                }
             }
         }
 

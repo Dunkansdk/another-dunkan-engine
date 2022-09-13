@@ -105,6 +105,8 @@ void update(MyManager& entity_manager, float time, sf::RenderWindow& window) {
         cRender.shape.setSize(sf::Vector2f{l, l});
         window.draw(cRender.shape);
     });
+
+    entity_manager.refresh();
 }
 
 int main() {
