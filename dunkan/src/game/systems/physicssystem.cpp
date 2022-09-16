@@ -11,10 +11,6 @@ void PhysicsSystem::update(EntityManager& entity_manager)
         physics.x += physics.velocity_x;
         physics.y += physics.velocity_y;
         physics.z += physics.velocity_z;
-
-        if(physics.x <= -90.f) {
-            entity_manager.kill(entity);
-        }
     });
 }
 
