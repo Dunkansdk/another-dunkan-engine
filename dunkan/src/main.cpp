@@ -14,7 +14,7 @@ PhysicsComponent& game_entities(EntityManager& entity_manager) {
     entity_manager.add_component<NameComponent>(entity1, NameComponent{"Abbaye"});
 
     Entity& entity2 = entity_manager.create_entity();
-    PhysicsComponent& phy = entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -360.f, .y = -360.f, .z = 0.5f, .velocity_x = -0.02f, .velocity_y = -0.02f });
+    PhysicsComponent& phy = entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -360.f, .y = -360.f, .z = 0.5f, .velocity_x = -0.12f, .velocity_y = -0.12f });
     RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{});
     render2.set_texture("sarco-color.png");
     render2.set_3D_textures("sarco-heightmap.png", "sarco-normal.png");
@@ -38,8 +38,8 @@ void update(sf::RenderWindow& window) {
     while(window.isOpen())
     {
         start = std::chrono::high_resolution_clock::now();
-        physics_system.update(entity_manager);
         render_system.update(entity_manager, window);
+        physics_system.update(entity_manager);
         end = std::chrono::high_resolution_clock::now();
         fps = (float)1e9 / (float)std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
         std::cout << "FPS: " << fps << std::endl;
@@ -66,6 +66,7 @@ int main() {
 
     window.create(video_mode, "Window", sf::Style::Close, context_settings);
     window.setView(view);
+    window.setVerticalSyncEnabled(true);
 
     update(window);
 
