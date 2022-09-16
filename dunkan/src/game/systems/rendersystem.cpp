@@ -13,16 +13,18 @@ using RenderSystem_c = ADE::META_TYPES::Typelist<RenderComponent, PhysicsCompone
 using RenderSystem_t = ADE::META_TYPES::Typelist<>;
 
 const std::string depth_fragShader = \
-    "uniform sampler2D color;" \
-    "uniform sampler2D depth;" \
-    "uniform float height;" \
-    "uniform float z_position;" \
-    "void main()" \
-    "{" \
-    "   vec4 pixel = texture2D(color, gl_TexCoord[0].xy);" \
-    "   gl_FragDepth = 1.0 - texture2D(depth, gl_TexCoord[0].xy).a*(texture2D(depth, gl_TexCoord[0].xy).r * height + z_position);" \
-    "   gl_FragColor = gl_Color * pixel; " \
-    "}";
+"uniform sampler2D color;" \
+"uniform sampler2D depth;" \
+"uniform float height;" \
+"uniform float z_pos;" \
+"void main()" \
+"{" \
+"   vec4 color_pixel = texture2D(color, gl_TexCoord[0].xy);" \
+"   vec4 depth_pixel = texture2D(depth, gl_TexCoord[0].xy);" \
+"   float z_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) * .33 * height + z_pos;" \
+"   gl_FragDepth = 1.0 - depth_pixel.a * (0.5 + z_pixel * 0.0001);" \
+"   gl_FragColor = gl_Color * color_pixel; " \
+"}";
 
 void RenderSystem::update(EntityManager& entity_manager, /*test*/sf::RenderWindow& window) {
 
@@ -41,10 +43,10 @@ void RenderSystem::update(EntityManager& entity_manager, /*test*/sf::RenderWindo
 
         sf::Shader depth;
         depth.loadFromMemory(depth_fragShader, sf::Shader::Fragment);
-        depth.setUniform("color", render.getTexture());
+        depth.setUniform("color", render.get_texture());
         depth.setUniform("depth", render.depth_texture());
         depth.setUniform("height", render.getTextureRect().height * render.getScale().y * 0.001f);
-        depth.setUniform("z_position", physics.z * 0.001f);
+        depth.setUniform("z_pos", physics.z * 0.001f);
 
         sf::Transform totalTransform;
         totalTransform = sf::Transform::Identity;
