@@ -7,5 +7,9 @@ struct CameraComponent {
     float zoom{};
     sf::Vector2f size{};
 
+    sf::Vector2f getSize() {
+        return size * zoom;
+    }
+
 };
 
