@@ -4,6 +4,8 @@
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/Graphics/Texture.hpp"
 #include <SFML/Graphics.hpp>
+#include <imgui.h>
+#include <imgui-SFML.h>
 
 struct RenderComponent : public sf::Sprite {
 
@@ -25,6 +27,10 @@ struct RenderComponent : public sf::Sprite {
         }
     }
 
+    void setScale(float scale) {
+        sf::Sprite::setScale(sf::Vector2f(scale, scale));
+    }
+
     sf::Texture& get_texture() {
         return texture;
     }
@@ -36,6 +42,8 @@ struct RenderComponent : public sf::Sprite {
     sf::Texture& normal_texture() {
         return m_normal;
     }
+
+    ImVec4 color = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
 
 private:
     sf::Texture texture;

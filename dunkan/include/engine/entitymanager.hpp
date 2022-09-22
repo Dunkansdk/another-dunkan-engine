@@ -63,6 +63,10 @@ namespace ADE {
                 this->alive = false;
             }
 
+            [[nodiscard]] constexpr int get_id() const noexcept {
+                return static_cast<int>(this->id);
+            }
+
         private:
             typename component_storage_t::component_info::mask_type m_component_mask{};
             typename component_storage_t::tag_info::mask_type       m_tag_mask{};

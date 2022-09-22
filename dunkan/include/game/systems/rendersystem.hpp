@@ -1,6 +1,8 @@
 #include "SFML/Graphics/CircleShape.hpp"
 #include "SFML/Graphics/RenderStates.hpp"
 #include "SFML/Graphics/Shader.hpp"
+#include "imgui.h"
+#include "imgui-SFML.h"
 #include "SFML/System/Vector2.hpp"
 
 #ifdef _WIN32
@@ -29,25 +31,37 @@ const std::string depth_fragShader = \
 
 struct RenderSystem {
 
+
     void update(EntityManager& entity_manager, sf::RenderWindow& window) {
         window.clear();
         glClear(GL_DEPTH_BUFFER_BIT);
 
+        ImGui::Begin("Entities");
         entity_manager.foreach<RenderSystem_c, RenderSystem_t>
-        ([&](auto& entity, RenderComponent& render, PhysicsComponent& physics)
+        ([&](Entity& entity, RenderComponent& render, PhysicsComponent& physics)
         {
+            std::string string_id = std::to_string(entity.get_id());
+
             render.setOrigin(
                     sf::Vector2f((window.getView().getViewport().height) + (physics.x + (render.get_texture().getSize().x * 0.5)),
                     (window.getView().getViewport().width) + (physics.y + (render.get_texture().getSize().y * 0.5))));
 
             window.pushGLStates();
 
+            if (ImGui::TreeNode(string_id.c_str()))
+            {
+                ImGui::ColorPicker3("Entity###", (float*)&render.color, ImGuiColorEditFlags_PickerHueBar);
+                ImGui::TreePop();
+            }
+
+            render.setColor(render.color);
+
             glEnable(GL_DEPTH_TEST);
             glDepthMask(GL_TRUE);
 
             sf::Shader depth;
             depth.loadFromMemory(depth_fragShader, sf::Shader::Fragment);
-            depth.setUniform("color", render.getTexture());
+            depth.setUniform("color", render.get_texture());
             depth.setUniform("depth", render.depth_texture());
             depth.setUniform("height", render.getTextureRect().height * render.getScale().y * 0.001f);
             depth.setUniform("z_pos", physics.z * 0.001f);
@@ -62,6 +76,9 @@ struct RenderSystem {
 
             window.popGLStates();
         });
+        ImGui::End();
+
+        ImGui::SFML::Render(window);
 
         window.display();
     }
