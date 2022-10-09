@@ -9,7 +9,6 @@ struct PhysicsSystem {
 
     void update(EntityManager& entity_manager, float delta) {
 
-
         entity_manager.foreach<PhysicsSystem_c, PhysicsSystem_t>
         ([&](Entity& entity, PhysicsComponent& physics)
         {

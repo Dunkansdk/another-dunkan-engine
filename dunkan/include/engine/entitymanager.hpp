@@ -67,6 +67,10 @@ namespace ADE {
                 return static_cast<int>(this->id);
             }
 
+            [[nodiscard]] const char * get_charid() noexcept {
+                return std::to_string(static_cast<int>(this->id)).c_str();
+            }
+
         private:
             typename component_storage_t::component_info::mask_type m_component_mask{};
             typename component_storage_t::tag_info::mask_type       m_tag_mask{};

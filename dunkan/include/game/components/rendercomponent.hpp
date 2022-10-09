@@ -1,8 +1,10 @@
 #pragma once
 
+#include <cstddef>
 #include <iostream>
 #include "SFML/Graphics/Sprite.hpp"
 #include "SFML/Graphics/Texture.hpp"
+#include "SFML/System/Vector2.hpp"
 #include <SFML/Graphics.hpp>
 #include <imgui.h>
 #include <imgui-SFML.h>
@@ -11,9 +13,12 @@ struct RenderComponent : public sf::Sprite {
 
     void set_texture(std::string filename)
     {
-        if(texture.loadFromFile(filename)) {
-            sf::Sprite::setTextureRect(sf::IntRect(0, 0, texture.getSize().x, texture.getSize().y));
-            sf::Sprite::setTexture(texture);
+        if(m_texture.loadFromFile(filename)) {
+            std::cout << m_texture.getSize().x << std::endl;
+            sf::Sprite::setTextureRect(sf::IntRect(0, 0, m_texture.getSize().x, m_texture.getSize().y));
+            this->height = m_texture.getSize().x;
+            sf::Sprite::setTexture(m_texture);
+            sf::Sprite::setScale(sf::Vector2f(1.0f, 1.0f));
         }
     }
 
@@ -27,12 +32,8 @@ struct RenderComponent : public sf::Sprite {
         }
     }
 
-    void setScale(float scale) {
-        sf::Sprite::setScale(sf::Vector2f(scale, scale));
-    }
-
     sf::Texture& get_texture() {
-        return texture;
+        return m_texture;
     }
 
     sf::Texture& depth_texture() {
@@ -43,11 +44,16 @@ struct RenderComponent : public sf::Sprite {
         return m_normal;
     }
 
-    ImVec4 color = ImVec4(114.0f / 255.0f, 144.0f / 255.0f, 154.0f / 255.0f, 200.0f / 255.0f);
+    void debug() {
+        ImGui::DragFloat("Height", &height, .5f);
+    }
+
+    float height;
 
 private:
-    sf::Texture texture;
+    sf::Texture m_texture;
     sf::Texture m_depth;
     sf::Texture m_normal;
+    float scale;
 };
 

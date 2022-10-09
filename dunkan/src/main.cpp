@@ -1,8 +1,11 @@
 #include <iostream>
 #include <chrono>
 #include <SFML/Graphics.hpp>
+#include <type_traits>
 #include "SFML/Window/ContextSettings.hpp"
+#include "game/components/drawablecomponent.hpp"
 #include "game/systems/camerasystem.hpp"
+#include "game/systems/debugsystem.hpp"
 #include "game/types.hpp"
 #include "game/systems/physicssystem.hpp"
 #include "game/systems/rendersystem.hpp"
@@ -11,17 +14,18 @@
 void game_entities(EntityManager& entity_manager) {
 
     Entity& entity1 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = -350.f, .y = 10.f, .z = 0.5f });
+    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = -350.f, .y = 10.f, .z = 1.f });
     RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, RenderComponent{});
-    render.set_texture("abbaye_color.png");
-    render.set_3D_textures("abbaye_heightmap.png", "abbaye_normal.png");
+    render.set_texture("data/abbaye_color.png");
+    render.set_3D_textures("data/abbaye_heightmap.png", "data/abbaye_normal.png");
 
     Entity& entity2 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = 0.f, .y = 0.f, .z = 0.5f, .velocity_x = -20.f, .velocity_y = -20.f });
+    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -250.f, .y = 50.f, .z = 1.f});
     entity_manager.add_component<CameraComponent>(entity2, CameraComponent{.zoom = 1.f, .size = sf::Vector2f(1280,800)});
+    DrawableComponent& drawable = entity_manager.add_component<DrawableComponent>(entity2);
     RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{});
-    render2.set_texture("sarco-color.png");
-    render2.set_3D_textures("sarco-heightmap.png", "sarco-normal.png");
+    render2.set_texture("data/tree_albedo.png");
+    render2.set_3D_textures("data/tree_heightmap.png", "data/tree_normal.png");
 
 }
 
@@ -36,6 +40,7 @@ void update(sf::RenderWindow& window) {
     RenderSystem render_system {};
     PhysicsSystem physics_system {};
     CameraSystem camera_system {};
+    DebugSystem debug_system {};
 
     game_entities(entity_manager);
 
@@ -54,21 +59,26 @@ void update(sf::RenderWindow& window) {
         // Events
         sf::Event event;
         while (window.pollEvent(event)) {
+#ifdef DEBUG_IMGUI
             ImGui::SFML::ProcessEvent(window, event);
+#endif
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
         }
 
         // IMGUI
+#ifdef DEBUG_IMGUI
         ImGui::SFML::Update(window, clock.restart());
         ImGui::Begin("Hello, world!");
         ImGui::Text("FPS: %f", fps);
         ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
         ImGui::End();
+#endif
 
         // Systems
         camera_system.update(entity_manager, window);
+        debug_system.update(entity_manager);
         physics_system.update(entity_manager, dt.asSeconds());
         render_system.update(entity_manager, window);
 
