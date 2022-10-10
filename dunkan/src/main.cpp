@@ -44,7 +44,7 @@ void update(sf::RenderWindow& window) {
 
     std::chrono::high_resolution_clock::time_point start;
     std::chrono::high_resolution_clock::time_point end;
-    float fps;
+    float fps = 0.0f;
 
     imgui_form(window);
 

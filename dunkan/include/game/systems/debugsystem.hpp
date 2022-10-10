@@ -15,8 +15,7 @@ struct DebugSystem {
         entity_manager.foreach<RenderSystem_c, RenderSystem_t>
         ([&](Entity& entity, RenderComponent& render, PhysicsComponent& physics)
         {
-            const char * entity_id = std::to_string(static_cast<int>(entity.get_id())).c_str();
-            if (ImGui::TreeNode(entity_id))
+            if (ImGui::TreeNode(std::to_string(static_cast<int>(entity.get_id())).c_str()))
             {
                 render.debug();
                 physics.debug();
