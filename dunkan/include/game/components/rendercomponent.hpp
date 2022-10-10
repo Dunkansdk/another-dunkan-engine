@@ -16,9 +16,10 @@ struct RenderComponent : public sf::Sprite {
         if(m_texture.loadFromFile(filename)) {
             std::cout << m_texture.getSize().x << std::endl;
             sf::Sprite::setTextureRect(sf::IntRect(0, 0, m_texture.getSize().x, m_texture.getSize().y));
-            this->height = m_texture.getSize().x;
+            this->height = 400.f;
             sf::Sprite::setTexture(m_texture);
             sf::Sprite::setScale(sf::Vector2f(1.0f, 1.0f));
+            this->scale = 1.0f;
         }
     }
 
@@ -46,14 +47,15 @@ struct RenderComponent : public sf::Sprite {
 
     void debug() {
         ImGui::DragFloat("Height", &height, .5f);
+        ImGui::DragFloat("Scale", &scale, .01f);
     }
 
     float height;
+    float scale;
 
 private:
     sf::Texture m_texture;
     sf::Texture m_depth;
     sf::Texture m_normal;
-    float scale;
 };
 

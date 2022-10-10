@@ -28,7 +28,7 @@ const std::string depth_fragShader = \
 "   if(depth_pixel.a == 0.0) discard;" \
 "   float z_pixel = height + z_pos;"
 "   gl_FragDepth = (((depth_pixel.r + depth_pixel.g + depth_pixel.b) / 3.0) * z_pixel );" \
-"   gl_FragColor = color_pixel * vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, color_pixel.a);" \
+"   gl_FragColor = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, color_pixel.a);" \
 "}";
 
 struct RenderSystem {
@@ -42,10 +42,11 @@ struct RenderSystem {
         entity_manager.foreach<RenderSystem_c, RenderSystem_t>
         ([&](Entity& entity, RenderComponent& render, PhysicsComponent& physics)
         {
-            render.setOrigin(
-                    sf::Vector2f((window.getView().getViewport().height) + (physics.x + (render.get_texture().getSize().x * 0.5)),
-                    (window.getView().getViewport().width) + (physics.y + (render.get_texture().getSize().y * 0.5))));
+            render.setPosition(sf::Vector2f(
+                        physics.x - (render.get_texture().getSize().x * render.scale * 0.5),
+                        physics.y - physics.z - (render.get_texture().getSize().y * render.scale * 0.5)));
 
+            render.setScale(sf::Vector2f(render.scale, render.scale));
             window.pushGLStates();
 
             glDepthFunc(GL_GREATER);
@@ -56,7 +57,7 @@ struct RenderSystem {
             depth.loadFromMemory(depth_fragShader, sf::Shader::Fragment);
             depth.setUniform("color", render.get_texture());
             depth.setUniform("depth", render.depth_texture());
-            depth.setUniform("height", render.height * render.getScale().y * 0.0003f);
+            depth.setUniform("height", render.height * render.getScale().y * 0.001f);
             depth.setUniform("z_pos", physics.z * 0.01f);
 
             sf::Transform totalTransform;

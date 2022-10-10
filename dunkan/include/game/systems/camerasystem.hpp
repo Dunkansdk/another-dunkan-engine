@@ -16,7 +16,7 @@ struct CameraSystem {
         {
             sf::View view = window.getView();
             view.setSize(camera.getSize());
-            view.setCenter((view.getViewport().height * 0.5), (view.getViewport().width * 0.5));
+            view.setCenter((view.getViewport().height * 0.5) + 100.0f, (view.getViewport().width * 0.5));
             window.setView(view);
         });
     }

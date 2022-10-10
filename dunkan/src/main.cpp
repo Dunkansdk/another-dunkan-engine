@@ -3,7 +3,6 @@
 #include <SFML/Graphics.hpp>
 #include <type_traits>
 #include "SFML/Window/ContextSettings.hpp"
-#include "game/components/drawablecomponent.hpp"
 #include "game/systems/camerasystem.hpp"
 #include "game/systems/debugsystem.hpp"
 #include "game/types.hpp"
@@ -14,15 +13,14 @@
 void game_entities(EntityManager& entity_manager) {
 
     Entity& entity1 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = -350.f, .y = 10.f, .z = 1.f });
+    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = -350.f, .y = 10.f, .z = 0.f });
     RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, RenderComponent{});
     render.set_texture("data/abbaye_color.png");
     render.set_3D_textures("data/abbaye_heightmap.png", "data/abbaye_normal.png");
 
     Entity& entity2 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -250.f, .y = 50.f, .z = 1.f});
-    entity_manager.add_component<CameraComponent>(entity2, CameraComponent{.zoom = 1.f, .size = sf::Vector2f(1280,800)});
-    DrawableComponent& drawable = entity_manager.add_component<DrawableComponent>(entity2);
+    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -140.f, .y = -180.f, .z = 0.f});
+    entity_manager.add_component<CameraComponent>(entity2, CameraComponent{.zoom = 1.5f, .size = sf::Vector2f(1280,800)});
     RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{});
     render2.set_texture("data/tree_albedo.png");
     render2.set_3D_textures("data/tree_heightmap.png", "data/tree_normal.png");
@@ -102,8 +100,7 @@ int main() {
 
     sf::ContextSettings context_settings;
     context_settings.depthBits = 24;
-    context_settings.antialiasingLevel = 2;
-    context_settings.sRgbCapable = false;
+    context_settings.antialiasingLevel = 0;
     context_settings.attributeFlags = sf::ContextSettings::Core;
 
     window.create(video_mode, "Window", sf::Style::Close, context_settings);

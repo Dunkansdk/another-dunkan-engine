@@ -13,7 +13,7 @@ struct PhysicsComponent {
     void debug() {
         ImGui::DragFloat("X", &x, .05f);
         ImGui::DragFloat("Y", &y, .05f);
-        ImGui::DragFloat("Z", &z, .05f);
+        ImGui::DragFloat("Z", &z, .01f);
     }
 
 };
