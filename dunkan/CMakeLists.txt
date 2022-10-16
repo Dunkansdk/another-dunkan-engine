@@ -5,58 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in
-  ${CMAKE_SOURCE_DIR}/build/sfml-download/CMakeLists.txt
-)
-
-execute_process(
-  COMMAND ${CMAKE_COMMAND} -G ${CMAKE_GENERATOR} .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/build/sfml-download
-)
-
-if(result)
-  message(FATAL_ERROR "CMake step for sfml failed: ${result}")
-endif()
-
-execute_process(
-  COMMAND ${CMAKE_COMMAND} --build .
-  RESULT_VARIABLE result
-  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/build/sfml-download
-)
-
-if(result)
-  message(FATAL_ERROR "Build step for sfml failed: ${result}")
-endif()
-
-add_subdirectory(
-  ${CMAKE_SOURCE_DIR}/build/sfml-src
-  ${CMAKE_SOURCE_DIR}/build/sfml-build
-)
-
-include(FetchContent)
-FetchContent_Declare(
-  imgui
-  GIT_REPOSITORY https://github.com/ocornut/imgui
-  GIT_TAG v1.88
-)
-FetchContent_MakeAvailable(imgui)
-
-FetchContent_Declare(
-  imgui-sfml
-  GIT_REPOSITORY https://github.com/eliasdaler/imgui-sfml
-  GIT_TAG v2.5
-)
-
-message(STATUS "Fetching ImGui-SFML...")
-
-set(IMGUI_DIR ${imgui_SOURCE_DIR})
-set(IMGUI_SFML_FIND_SFML OFF)
-set(IMGUI_SFML_IMGUI_DEMO ON)
-
-FetchContent_MakeAvailable(imgui-sfml)
-
 
 #----------------------------------
 set(SFML_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/sfml-build/include/)
@@ -66,11 +14,11 @@ include_directories(${SFML_INCLUDE_DIR} ${APP_INCLUDE_DIR})
 include_directories (/usr/include/freetype2)
 
 # application target
-add_executable (app ${APP_SRC_FILES}) 
+add_executable (app ${APP_SRC_FILES})
 if(WIN32 OR WIN64)
-  target_link_libraries(app sfml-window sfml-system sfml-graphics ImGui-SFML::ImGui-SFML)
+  target_link_libraries(app )
 else()
-  target_link_libraries(app sfml-window sfml-system sfml-graphics pthread X11 ImGui-SFML::ImGui-SFML)
+  target_link_libraries(app thread X11)
 endif()
 
 source_group("src" FILES ${APP_SRC_FILES})
