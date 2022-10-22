@@ -69,6 +69,43 @@ FetchContent_Declare(
 set(BUILD_WSI_WAYLAND_SUPPORT OFF CACHE INTERNAL "Build Wayland support")
 FetchContent_MakeAvailable(vulkan_loader)
 
+if (NOT imgui_FOUND)
+  include(FetchContent)
+  FetchContent_Declare(
+    imgui
+    GIT_REPOSITORY https://github.com/ocornut/imgui.git
+    GIT_TAG v1.82
+  )
+  FetchContent_GetProperties(imgui)
+  if (NOT imgui_POPULATED) # Have we downloaded imgui yet?
+    set(FETCHCONTENT_QUIET NO)
+    FetchContent_Populate(imgui)
+    #message("imgui_SOURCE_DIR " ${imgui_SOURCE_DIR})
+    include_directories(${imgui_SOURCE_DIR})
+    include_directories(${imgui_SOURCE_DIR}/backends)
+
+    list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/imgui.cpp)
+    list(APPEND CPP_SOURCES_FILES ${imgui_SOURCE_DIR}/imgui_demo.cpp)
+    list(APPEND CPP_SOURCES_FILES ${imgui_SOURCE_DIR}/imgui_draw.cpp)
+    list(APPEND CPP_SOURCES_FILES ${imgui_SOURCE_DIR}/imgui_tables.cpp)
+    list(APPEND CPP_SOURCES_FILES ${imgui_SOURCE_DIR}/imgui_widgets.cpp)
+    list(APPEND CPP_SOURCES_FILES ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp)
+    list(APPEND CPP_SOURCES_FILES ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.cpp)
+
+    list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/imgui.h)
+    list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/imconfig.h)
+    list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/imgui_internal.h)
+    #list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/imstb_rectpack.h)
+    #list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/imstb_textedit.h)
+    #list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/imstb_truetype.h)
+    list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.h)
+    list(APPEND CPP_HEADERS_FILES ${imgui_SOURCE_DIR}/backends/imgui_impl_vulkan.h)
+
+    list(APPEND CPP_INCLUDE_DIRS ${imgui_SOURCE_DIR})
+    list(APPEND CPP_INCLUDE_DIRS ${imgui_SOURCE_DIR}/backends)
+  endif()
+endif()
+
 #-----------------------------------------------
 # Sources
 #-----------------------------------------------
@@ -79,7 +116,7 @@ include_directories(${APP_INCLUDE_DIR} ${stb_image_SOURCE_DIR})
 #-----------------------------------------------
 # Application target
 #-----------------------------------------------
-add_executable (app ${APP_SRC_FILES})
+add_executable (app ${APP_SRC_FILES} ${CPP_SOURCES_FILES} ${CPP_HEADERS_FILES})
 if(WIN32 OR WIN64)
     target_link_libraries(app PRIVATE glm glfw Vulkan-Headers vulkan)
 else()
