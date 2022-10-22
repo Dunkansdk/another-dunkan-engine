@@ -5,12 +5,19 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
 
-configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in
-  ${CMAKE_SOURCE_DIR}/build/sfml-download/CMakeLists.txt
-)
-
 include(FetchContent)
+set(FETCHCONTENT_BASE_DIR ${PROJECT_SOURCE_DIR}/extern CACHE PATH "Missing description." FORCE)
+
+
+FetchContent_Declare(
+    stb_image
+    GIT_REPOSITORY https://github.com/nothings/stb.git
+    SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/extern/stb_image
+    GIT_PROGRESS   TRUE
+    USES_TERMINAL_DOWNLOAD TRUE
+)
+FetchContent_MakeAvailable(stb_image)
+
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -46,7 +53,7 @@ FetchContent_MakeAvailable(vulkan_loader)
 #----------------------------------
 set(APP_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/)
 file(GLOB_RECURSE APP_SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-include_directories(${APP_INCLUDE_DIR})
+include_directories(${APP_INCLUDE_DIR} ${stb_image_SOURCE_DIR})
 
 # application target
 add_executable (app ${APP_SRC_FILES})
@@ -58,6 +65,7 @@ endif()
 
 source_group("src" FILES ${APP_SRC_FILES})
 source_group("include" FILES ${APP_INCLUDE_DIR}/*.h)
+
 
 if(MSVC)
   if(CMAKE_CXX_FLAGS MATCHES "/W[0-4]")
