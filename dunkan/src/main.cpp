@@ -93,7 +93,7 @@ void update(MyManager& entity_manager, float time, sf::RenderWindow& window) {
 
     entity_manager.foreach<SLife, EMPTY_TAG>
     ([&time, &entity_manager](Entity& entity, auto& cLife) {
-        cLife.value -= time * 2.f;
+        cLife.value -= time * 8.f;
 
         if(cLife.value <= 0)
             entity_manager.kill(entity);
@@ -132,6 +132,12 @@ int main() {
         // Performed. Now perform GPU stuff...
         start = std::chrono::high_resolution_clock::now();
 
+	sf::Event event;
+	while (window.pollEvent(event)) {
+	  if(event.type == sf::Event::Closed) {
+	    window.close();
+	  }
+	}
         window.clear();
         update(entity_manager, delta.asSeconds(), window);
         window.display();
