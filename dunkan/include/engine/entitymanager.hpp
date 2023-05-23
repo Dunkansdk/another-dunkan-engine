@@ -7,14 +7,14 @@
 
 namespace ADE {
 
-    template <typename COMPONENT_LIST, typename TAG_LIST = META_TYPES::Typelist<>, std::size_t CAPACITY = 10>
+    template <typename COMPONENT_LIST, typename SINGLETON_LIST, typename TAG_LIST = META_TYPES::Typelist<>, std::size_t CAPACITY = 10>
     struct EntityManager {
 
         struct Entity;
 
         template <typename T>
         using to_key_type           = typename Slotmap<T, CAPACITY>::key_type;
-        using component_storage_t   = ComponentStorage<COMPONENT_LIST, TAG_LIST, CAPACITY>;
+        using component_storage_t   = ComponentStorage<COMPONENT_LIST, SINGLETON_LIST, TAG_LIST, CAPACITY>;
         using supported_components  = COMPONENT_LIST;
 
         struct Entity {
@@ -85,6 +85,16 @@ namespace ADE {
             auto& storage = m_components.template get_storage<COMPONENT>();
             to_key_type<COMPONENT> key = entity.template get_component_key<COMPONENT>();
             return storage[key];
+        }
+
+        template<typename COMPONENT>
+        auto const& get_singleton_component() const {
+            return m_components.template get_singleton_component<COMPONENT>();
+        }
+
+        template<typename COMPONENT>
+        auto& get_singleton_component() {
+            return m_components.template get_singleton_component<COMPONENT>();
         }
 
         template<typename COMPONENT>

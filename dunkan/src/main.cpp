@@ -29,8 +29,9 @@
     };
 
     using MyComponents = ADE::META_TYPES::Typelist<CPosition, CVelocity, CAcceleration, CRender, CLife>;
+    using MySingletonComponents = ADE::META_TYPES::Typelist<>;
     using MyTags = ADE::META_TYPES::Typelist<>;
-    using MyManager = ADE::EntityManager<MyComponents, MyTags, 9999>;
+    using MyManager = ADE::EntityManager<MyComponents, MySingletonComponents, MyTags, 9999>;
     using Entity = MyManager::Entity;
 
     using SApplyVelocity = ADE::META_TYPES::Typelist<CPosition, CVelocity>;
