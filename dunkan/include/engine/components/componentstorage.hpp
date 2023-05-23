@@ -24,7 +24,7 @@ namespace ADE {
         template <typename T> using to_tuple = META_TYPES::replace_t<std::tuple, T>;
         template <typename T> using to_slotmap = Slotmap<T, Capacity>;
         using storage_type = to_tuple<META_TYPES::mp_transform<to_slotmap, COMPONENT_LIST>>;
-	using storage_singleton_type = to_tuple<SINGLETON_LIST>;
+	    using storage_singleton_type = to_tuple<SINGLETON_LIST>;
 
         template<typename COMPONENT>
         [[nodiscard]] constexpr auto& get_storage() noexcept {
@@ -44,7 +44,7 @@ namespace ADE {
 
     private:
         storage_type m_component_tuple{};
-	storage_singleton_type m_singleton_component_tuple{};
+        storage_singleton_type m_singleton_component_tuple{};
 
     };
 
