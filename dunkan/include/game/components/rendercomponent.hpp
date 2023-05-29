@@ -9,6 +9,8 @@
 #include <imgui.h>
 #include <imgui-SFML.h>
 
+#define GL_SILENCE_DEPRECATION
+
 struct RenderComponent : public sf::Sprite {
 
     void set_texture(std::string filename)
@@ -45,13 +47,9 @@ struct RenderComponent : public sf::Sprite {
         return m_normal;
     }
 
-    void debug() {
-        ImGui::DragFloat("Height", &height, .5f);
-        ImGui::DragFloat("Scale", &scale, .01f);
-    }
-
     float height;
     float scale;
+    bool debug_heightmap{false};
 
 private:
     sf::Texture m_texture;

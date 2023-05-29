@@ -13,17 +13,17 @@
 void game_entities(EntityManager& entity_manager) {
 
     Entity& entity1 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = -350.f, .y = 10.f, .z = 0.f });
+    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = -350.f, .y = 10.f, .z = 0.f, .is_debug = true});
     RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, RenderComponent{});
-    render.set_texture("data/abbaye_color.png");
-    render.set_3D_textures("data/abbaye_heightmap.png", "data/abbaye_normal.png");
+    render.set_texture("data/abbey_albedo.png");
+    render.set_3D_textures("data/abbey_height.png", "data/abbey_normal.png");
 
     Entity& entity2 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -140.f, .y = -180.f, .z = 0.f});
+    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -140.f, .y = -180.f, .z = 0.f, .is_debug = true});
     entity_manager.add_component<CameraComponent>(entity2, CameraComponent{.zoom = 1.5f, .size = sf::Vector2f(1280,800)});
     RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{});
     render2.set_texture("data/tree_albedo.png");
-    render2.set_3D_textures("data/tree_heightmap.png", "data/tree_normal.png");
+    render2.set_3D_textures("data/tree_height.png", "data/tree_normal.png");
 
 }
 
@@ -71,6 +71,7 @@ void update(sf::RenderWindow& window) {
         ImGui::Begin("Hello, world!");
         ImGui::Text("FPS: %f", fps);
         ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
+        ImGui::Checkbox("Heightmaps", &render_system.debug_heightmap);
         ImGui::End();
 #endif
 
@@ -92,7 +93,7 @@ int main() {
 
     // To engine wrapper class
     sf::RenderWindow window;
-    sf::VideoMode video_mode(1280, 800);
+    sf::VideoMode video_mode(1920, 1080, 64);
 
     sf::View view = window.getDefaultView();
     view.setSize(video_mode.width, video_mode.height);
