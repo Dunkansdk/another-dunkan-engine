@@ -49,7 +49,7 @@ struct RenderComponent : public sf::Sprite {
 
     float height;
     float scale;
-    bool debug_heightmap{false};
+    bool is_selected{false};
 
 private:
     sf::Texture m_texture;

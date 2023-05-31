@@ -8,6 +8,7 @@
 #include "game/types.hpp"
 #include "game/systems/physicssystem.hpp"
 #include "game/systems/rendersystem.hpp"
+#include "game/systems/inputsystem.hpp"
 #include "game/imguiconfig.hpp"
 
 void game_entities(EntityManager& entity_manager) {
@@ -38,7 +39,8 @@ void update(sf::RenderWindow& window) {
     RenderSystem render_system {};
     PhysicsSystem physics_system {};
     CameraSystem camera_system {};
-    DebugSystem debug_system {};
+    DebugSystem debug_system {}; 
+    InputSystem input_system {};
 
     game_entities(entity_manager);
 
@@ -54,12 +56,15 @@ void update(sf::RenderWindow& window) {
         start = std::chrono::high_resolution_clock::now();
         sf::Time dt = clock.restart();
 
-        // Events
         sf::Event event;
-        while (window.pollEvent(event)) {
-#ifdef DEBUG_IMGUI
-            ImGui::SFML::ProcessEvent(window, event);
-#endif
+        while (window.pollEvent(event)) 
+        {
+            #ifdef DEBUG_IMGUI
+                ImGui::SFML::ProcessEvent(window, event);
+            #endif
+
+            input_system.update(entity_manager, window, event);
+
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
@@ -93,7 +98,7 @@ int main() {
 
     // To engine wrapper class
     sf::RenderWindow window;
-    sf::VideoMode video_mode(1920, 1080, 64);
+    sf::VideoMode video_mode(1920, 1080, 32);
 
     sf::View view = window.getDefaultView();
     view.setSize(video_mode.width, video_mode.height);

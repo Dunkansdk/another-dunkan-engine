@@ -74,6 +74,10 @@ struct RenderSystem {
             depth.setUniform("z_pos", physics.z * 0.01f);
             depth.setUniform("debug_heightmap", debug_heightmap);
 
+            if(render.is_selected) {
+                _debug_render_lines(render, window);
+            }
+
             sf::Transform totalTransform;
             totalTransform = sf::Transform::Identity;
 
@@ -90,6 +94,25 @@ struct RenderSystem {
 #endif
 
         window.display();
+    }
+
+private:
+    void _debug_render_lines(RenderComponent& render, sf::RenderWindow& window) {
+        float initial_x = render.getGlobalBounds().left;
+        float initial_y = render.getGlobalBounds().top;
+        float height = render.getGlobalBounds().height;
+        float width = render.getGlobalBounds().width;
+
+        sf::Vertex line[] =
+        {
+            sf::Vertex(sf::Vector2f(initial_x, initial_y)),
+            sf::Vertex(sf::Vector2f(initial_x + width, initial_y)),
+            sf::Vertex(sf::Vector2f(initial_x + width, initial_y + height)),
+            sf::Vertex(sf::Vector2f(initial_x, initial_y + height)),
+            sf::Vertex(sf::Vector2f(initial_x, initial_y)),
+        };
+
+        window.draw(line, 5, sf::LineStrip);
     }
 
 };
