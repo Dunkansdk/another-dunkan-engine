@@ -36,9 +36,9 @@ const std::string depth_fragShader = \
 "   float z_pixel = height + z_pos;"
 "   gl_FragDepth = (((depth_pixel.r + depth_pixel.g + depth_pixel.b) / 3.0) * z_pixel );" \
 "   if(debug_heightmap) {" \
-"   gl_FragColor = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, color_pixel.a);" \
+"       gl_FragColor = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, color_pixel.a);" \
 "   } else { " \
-"   gl_FragColor = color_pixel;" \
+"       gl_FragColor = color_pixel;" \
 "   }" \
 "}";
 
@@ -55,9 +55,11 @@ struct RenderSystem {
         entity_manager.foreach<RenderSystem_c, RenderSystem_t>
         ([&](Entity& entity, RenderComponent& render, PhysicsComponent& physics)
         {
-            render.setPosition(sf::Vector2f(
-                        physics.x - (render.get_texture().getSize().x * render.scale * 0.5),
-                        physics.y - physics.z - (render.get_texture().getSize().y * render.scale * 0.5)));
+            // render.setPosition(sf::Vector2f(
+            //             physics.x - (render.get_texture().getSize().x * render.scale * 0.5),
+            //             physics.y - physics.z - (render.get_texture().getSize().y * render.scale * 0.5)));
+            sf::Vector2i position = window.mapCoordsToPixel(sf::Vector2f(physics.x, physics.y - physics.z));
+            render.setPosition(position.x, position.y);
 
             render.setScale(sf::Vector2f(render.scale, render.scale));
             window.pushGLStates();

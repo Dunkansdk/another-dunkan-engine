@@ -17,11 +17,10 @@ struct DebugSystem {
         {
             if (ImGui::TreeNode(std::to_string(static_cast<int>(entity.get_id())).c_str()))
             {
-                if(physics.is_debug) {
-                    ImGui::DragFloat("X", &physics.x, .1f);
-                    ImGui::DragFloat("Y", &physics.y, .1f);
-                    ImGui::DragFloat("Z", &physics.z, .01f);
-                }
+                ImGui::DragFloat("X", &physics.x, .1f);
+                ImGui::LabelText("Y", to_string(physics.y).c_str());
+                ImGui::DragFloat("Y", &physics.y, .1f);
+                ImGui::DragFloat("Z", &physics.z, .01f);
                 ImGui::DragFloat("Height", &render.height, .5f);
                 ImGui::DragFloat("Scale", &render.scale, .01f);
                 ImGui::TreePop();

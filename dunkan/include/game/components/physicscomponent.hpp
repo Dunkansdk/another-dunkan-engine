@@ -9,6 +9,5 @@ struct PhysicsComponent {
     float velocity_x{};
     float velocity_y{};
     float velocity_z{};
-    bool is_debug{};
-
+    
 };

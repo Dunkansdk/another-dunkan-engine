@@ -6,8 +6,8 @@
 #include <imgui.h>
 #include <imgui-SFML.h>
 
-using Components            = ADE::META_TYPES::Typelist<CameraComponent, PhysicsComponent, RenderComponent>;
-using SingletonComponents   = ADE::META_TYPES::Typelist<>;
+using Components            = ADE::META_TYPES::Typelist<PhysicsComponent, RenderComponent>;
+using SingletonComponents   = ADE::META_TYPES::Typelist<CameraComponent>;
 using Tags                  = ADE::META_TYPES::Typelist<>;
 using EntityManager         = ADE::EntityManager<Components, SingletonComponents, Tags, 1024>;
 using Entity                = EntityManager::Entity;

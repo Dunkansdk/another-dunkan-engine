@@ -8,20 +8,24 @@
 #include "game/types.hpp"
 #include "game/systems/physicssystem.hpp"
 #include "game/systems/rendersystem.hpp"
-#include "game/systems/inputsystem.hpp"
+#include "game/systems/moveentitysystem.hpp"
 #include "game/imguiconfig.hpp"
+
+unsigned int mFrame;
+	unsigned int mFps;
+	sf::Clock mClock;
 
 void game_entities(EntityManager& entity_manager) {
 
     Entity& entity1 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = -350.f, .y = 10.f, .z = 0.f, .is_debug = true});
+    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = 350.f, .y = 10.f, .z = 0.f, .is_debug = true});
     RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, RenderComponent{});
     render.set_texture("data/abbey_albedo.png");
     render.set_3D_textures("data/abbey_height.png", "data/abbey_normal.png");
 
     Entity& entity2 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = -140.f, .y = -180.f, .z = 0.f, .is_debug = true});
-    entity_manager.add_component<CameraComponent>(entity2, CameraComponent{.zoom = 1.5f, .size = sf::Vector2f(1280,800)});
+    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = 140.f, .y = 180.f, .z = 0.f, .is_debug = true});
+    // entity_manager.add_component<CameraComponent>(entity2, CameraComponent{.zoom = 1.5f, .size = sf::Vector2f(1920,1080)});
     RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{});
     render2.set_texture("data/tree_albedo.png");
     render2.set_3D_textures("data/tree_height.png", "data/tree_normal.png");
@@ -38,56 +42,54 @@ void update(sf::RenderWindow& window) {
     EntityManager entity_manager;
     RenderSystem render_system {};
     PhysicsSystem physics_system {};
-    CameraSystem camera_system {};
     DebugSystem debug_system {}; 
-    InputSystem input_system {};
+    MoveEntitySystem move_entity_system {};
 
     game_entities(entity_manager);
-
-    std::chrono::high_resolution_clock::time_point start;
-    std::chrono::high_resolution_clock::time_point end;
-    float fps = 0.0f;
 
     imgui_form(window);
 
     sf::Clock clock;
     while(window.isOpen())
     {
-        start = std::chrono::high_resolution_clock::now();
         sf::Time dt = clock.restart();
 
         sf::Event event;
         while (window.pollEvent(event)) 
         {
-            #ifdef DEBUG_IMGUI
-                ImGui::SFML::ProcessEvent(window, event);
-            #endif
-
-            input_system.update(entity_manager, window, event);
-
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
+#ifdef DEBUG_IMGUI
+            ImGui::SFML::ProcessEvent(window, event);
+#endif
+
+            move_entity_system.update(entity_manager, window, event);
         }
 
-        // IMGUI
 #ifdef DEBUG_IMGUI
         ImGui::SFML::Update(window, clock.restart());
         ImGui::Begin("Hello, world!");
-        ImGui::Text("FPS: %f", fps);
+        ImGui::Text("FPS: %f", (float)mFps);
         ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
         ImGui::Checkbox("Heightmaps", &render_system.debug_heightmap);
         ImGui::End();
 #endif
 
         // Systems
-        camera_system.update(entity_manager, window);
+        // camera_system.update(entity_manager, window);
         debug_system.update(entity_manager);
         physics_system.update(entity_manager, dt.asSeconds());
         render_system.update(entity_manager, window);
 
-        end = std::chrono::high_resolution_clock::now();
-        fps = (float)1e9 / (float)std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+        if(mClock.getElapsedTime().asSeconds() >= 1.f)
+		{
+			mFps = mFrame;
+			mFrame = 0;
+			mClock.restart();
+		}
+ 
+		++mFrame;
     }
 
     window.close();
@@ -102,16 +104,16 @@ int main() {
 
     sf::View view = window.getDefaultView();
     view.setSize(video_mode.width, video_mode.height);
-    view.setCenter(0.f, 0.f);
+    view.setCenter(video_mode.width / 2, video_mode.height / 2);
 
     sf::ContextSettings context_settings;
     context_settings.depthBits = 24;
-    context_settings.antialiasingLevel = 0;
+    context_settings.antialiasingLevel = 1;
     context_settings.attributeFlags = sf::ContextSettings::Core;
 
-    window.create(video_mode, "Window", sf::Style::Close, context_settings);
+    window.create(video_mode, "Window", sf::Style::Close | sf::Style::Titlebar, context_settings);
     window.setView(view);
-    window.setVerticalSyncEnabled(true);
+    // window.setVerticalSyncEnabled(true);
 
     update(window);
 

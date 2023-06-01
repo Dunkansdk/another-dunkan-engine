@@ -11,14 +11,14 @@ using CameraSystem_t = ADE::META_TYPES::Typelist<>;
 struct CameraSystem {
 
     void update(EntityManager& entity_manager, sf::RenderWindow& window) {
-        entity_manager.foreach<CameraSystem_c, CameraSystem_t>
-        ([&](Entity& entity, CameraComponent& camera, PhysicsComponent& physics)
-        {
-            sf::View view = window.getView();
-            view.setSize(camera.getSize());
-            view.setCenter((view.getViewport().height * 0.5), (view.getViewport().width * 0.5));
-            window.setView(view);
-        });
+        // entity_manager.foreach<CameraSystem_c, CameraSystem_t>
+        // ([&](Entity& entity, CameraComponent& camera, PhysicsComponent& physics)
+        // {
+        //     sf::View view = window.getView();
+        //     view.setSize(camera.getSize());
+        //     view.setCenter((view.getViewport().height * 0.5), (view.getViewport().width * 0.5));
+        //     window.setView(view);
+        // });
     }
 
 };
