@@ -45,17 +45,19 @@ const std::string depth_fragShader = \
     "varying vec3 vertex; "\
 "void main()" \
 "{" \
-"   vec3 vertex_copy = vertex;" \
+"   vec3 frag_position = vertex;" \
 "   vec4 depth_pixel = texture2D(depth, gl_TexCoord[0].xy);" \
 "   vec4 color_pixel = texture2D(color, gl_TexCoord[0].xy);" \
-"	vec3 direction = -1.0 + 2.0 * texture2D(normal, gl_TexCoord[0].xy).rgb;"
+"   vec3 direction = -1.0 + 2.0 * texture2D(normal, gl_TexCoord[0].xy).rgb;"
 "   if(depth_pixel.a == 0.0) discard;" \
-"   float z_pixel = height + z_pos;"
-"   vertex_copy.y -= z_pixel;"
-"   vertex_copy.z = z_pixel + z_pos;"
-"   gl_FragDepth = (((depth_pixel.r + depth_pixel.g + depth_pixel.b) / 3.0) * z_pixel );" \
+"   float height_pixel = (((depth_pixel.r + depth_pixel.g + depth_pixel.b) * .33) * height );" \
+"   frag_position.y -= height_pixel;" \
+"   frag_position.z = height_pixel + z_pos;" \
+"   gl_FragDepth = 1.0 - depth_pixel.a * (0.5 + frag_position.z * 0.0001);" \
 "   if(debug_heightmap) {" \
-"       gl_FragColor = vec4(gl_FragDepth, gl_FragDepth, gl_FragDepth, color_pixel.a);" \
+"       float z_pixel = (-height * 0.001) + (z_pos * 0.01);" \
+"       float depth_color = (((depth_pixel.r + depth_pixel.g + depth_pixel.b) / 3.0) * z_pixel );" \
+"       gl_FragColor = vec4(depth_color, depth_color, depth_color, color_pixel.a);" \
 "   } else { " \
 "   gl_FragColor = ambient_light * color_pixel;" \
 "   int i;" \
@@ -69,7 +71,7 @@ const std::string depth_fragShader = \
 "	    }" \
 "	    else" \
 "	    {" \
-"		    vec3 light_direction = gl_LightSource[i].position.xyz - vertex_copy.xyz;" \
+"		    vec3 light_direction = gl_LightSource[i].position.xyz - frag_position.xyz;" \
 "		    float dist = length(light_direction);" \
 "		    float attenuation = 1.0/( gl_LightSource[i].constantAttenuation +" \
 "								  dist*gl_LightSource[i].linearAttenuation +" \
@@ -110,8 +112,8 @@ struct RenderSystem {
             depth.setUniform("color", render.get_texture());
             depth.setUniform("depth", render.depth_texture());
             depth.setUniform("normal", render.normal_texture());
-            depth.setUniform("height", render.height * render.getScale().y * 0.001f);
-            depth.setUniform("z_pos", physics.z * 0.01f);
+            depth.setUniform("height", -(render.height * render.getScale().y));
+            depth.setUniform("z_pos", physics.z);
             depth.setUniform("debug_heightmap", debug_heightmap);
             depth.setUniform("NBR_LIGHTS", nearby_lights);
             depth.setUniform("ambient_light",sf::Glsl::Vec4(sf::Color{ 180, 180, 180, 255 }));
