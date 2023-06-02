@@ -9,6 +9,7 @@
 #include "game/systems/physicssystem.hpp"
 #include "game/systems/rendersystem.hpp"
 #include "game/systems/moveentitysystem.hpp"
+
 #include "game/imguiconfig.hpp"
 
 unsigned int m_frame;
@@ -29,6 +30,31 @@ void game_entities(EntityManager& entity_manager) {
     render2.set_texture("data/tree_albedo.png");
     render2.set_3D_textures("data/tree_height.png", "data/tree_normal.png");
 
+    // Entity& entity3 = entity_manager.create_entity();
+    // entity_manager.add_component<PhysicsComponent>(entity3, PhysicsComponent{
+    //     .x = 700.f,
+    //     .y = 700.f,
+    //     .z = 0.f
+    // });
+    // entity_manager.add_component<LightComponent>(entity3, LightComponent{
+    //     .diffuse_color = sf::Color::Green,
+    //     .specular_color = sf::Color::White,
+    //     .direction = sf::Vector3f(-1,.5,-1)
+    // });
+
+    Entity& entity4 = entity_manager.create_entity();
+    entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
+        .x = 500.f,
+        .y = 10.f,
+        .z = .2f
+    });
+    entity_manager.add_component<LightComponent>(entity4, LightComponent{
+        .diffuse_color = sf::Color::Red,
+        .specular_color = sf::Color::White,
+        .direction = sf::Vector3f(.2 ,-1,-1),
+        .quadratic_attenuation = 0.00001,
+        .linear_attenuation = 0.00001
+    });
 }
 
 void imgui_form(sf::RenderWindow& window) {
@@ -60,13 +86,13 @@ void update(sf::RenderWindow& window) {
             if (event.type == sf::Event::Closed) {
                 window.close();
             }
-            // System poll events
-            move_entity_system.update(entity_manager, window, event);
-        }
 
 #ifdef DEBUG_IMGUI
-        ImGui::SFML::ProcessEvent(window, event);
+            ImGui::SFML::ProcessEvent(window, event);
+            // System poll events
+            move_entity_system.update(entity_manager, window, event);
 #endif
+        }
 
 #ifdef DEBUG_IMGUI
         ImGui::SFML::Update(window, clock.restart());
@@ -75,11 +101,11 @@ void update(sf::RenderWindow& window) {
         ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
         ImGui::Checkbox("Heightmaps", &render_system.debug_heightmap);
         ImGui::End();
+        debug_system.update(entity_manager);
 #endif
 
         // Systems
         camera_system.update(window, dt.asSeconds());
-        debug_system.update(entity_manager);
         physics_system.update(entity_manager, dt.asSeconds());
         render_system.update(entity_manager, window);
 
@@ -98,8 +124,6 @@ void update(sf::RenderWindow& window) {
 
 
 int main() {
-
-    // To engine wrapper class
     sf::RenderWindow window;
     sf::VideoMode video_mode(1920, 1080, 32);
 
@@ -110,12 +134,12 @@ int main() {
     sf::ContextSettings context_settings;
     context_settings.depthBits = 24;
     context_settings.antialiasingLevel = 1;
-    context_settings.attributeFlags = sf::ContextSettings::Core;
+    //context_settings.attributeFlags = sf::ContextSettings::Core;
 
     window.create(video_mode, "Window", sf::Style::Close | sf::Style::Titlebar, context_settings);
     window.setView(view);
     // window.setVerticalSyncEnabled(true);
-    window.setFramerateLimit(165);
+    // window.setFramerateLimit(165);
 
     update(window);
 
