@@ -10,7 +10,27 @@ using CameraSystem_t = ADE::META_TYPES::Typelist<>;
 
 struct CameraSystem {
 
-    void update(EntityManager& entity_manager, sf::RenderWindow& window) {
+    void update(sf::RenderWindow& window, float delta) {
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+            movement.x -= 250.0f;
+            std::cout << "Movement {" << movement.x << ", " << movement.y << "}\n";
+        }
+            
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
+            movement.x += 250.0f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+            movement.y -= 250.0f;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
+            movement.y += 250.0f;
+
+        
+        sf::View view = window.getView();
+        view.move(movement * delta);
+        window.setView(view);
+
+        movement = {0.f, 0.f};
+        
         // entity_manager.foreach<CameraSystem_c, CameraSystem_t>
         // ([&](Entity& entity, CameraComponent& camera, PhysicsComponent& physics)
         // {
@@ -20,5 +40,8 @@ struct CameraSystem {
         //     window.setView(view);
         // });
     }
+
+private:
+    sf::Vector2f movement{0.f, 0.f};  
 
 };
