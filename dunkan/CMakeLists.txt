@@ -6,6 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a")
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 
+add_definitions(-DDEBUG_IMGUI)
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt.in
   ${CMAKE_SOURCE_DIR}/build/sfml-download/CMakeLists.txt
@@ -86,5 +88,5 @@ if(MSVC)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W4")
   endif()
 elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wpedantic -Wextra -fsanitize=address,undefined")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wpedantic -Wextra -fsanitize=address,undefined -Wdeprecated-declarations")
 endif()

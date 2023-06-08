@@ -18,24 +18,23 @@ namespace ADE {
         using supported_components  = COMPONENT_LIST;
 
         struct Entity {
-            std::size_t id{next_id++};
             using key_type_list = META_TYPES::mp_transform<to_key_type, COMPONENT_LIST>;
             using key_storage_t = META_TYPES::replace_t<std::tuple, key_type_list>;
 
             template <typename COMPONENT>
-            void add_component(to_key_type<COMPONENT> key) {
+            constexpr void add_component(to_key_type<COMPONENT> key) {
                 m_component_mask |= component_storage_t::component_info::template mask<COMPONENT>();
                 std::get<to_key_type<COMPONENT>>(m_component_keys) = key;
             }
 
             template <typename COMPONENT>
-            bool has_component() const noexcept {
+            [[nodiscard]] constexpr bool has_component() const noexcept {
                 auto mask = component_storage_t::component_info::template mask<COMPONENT>();
                 return m_component_mask & mask;
             }
 
             template <typename COMPONENT>
-            to_key_type<COMPONENT> get_component_key() const {
+            [[nodiscard]] constexpr to_key_type<COMPONENT> get_component_key() const {
                 assert(has_component<COMPONENT>());
                 return std::get<to_key_type<COMPONENT>>(m_component_keys);
             }
@@ -45,24 +44,44 @@ namespace ADE {
                 m_component_mask ^= component_storage_t::component_info::template mask<COMPONENT>();
             }
 
+            template <typename TAG>
+            constexpr void add_tag() {
+                m_tag_mask |= component_storage_t::tag_info::template mask<>();
+            }
+
+            template <typename TAG>
+            [[nodiscard]] constexpr bool has_tag() const noexcept {
+                auto mask = component_storage_t::tag_info::template mask<TAG>();
+                return m_tag_mask & mask;
+            }
+
             bool is_alive() const noexcept {
-                return this->isAlive;
+                return this->alive;
             }
 
             void kill() noexcept {
-                this->isAlive = false;
+                this->alive = false;
+            }
+
+            [[nodiscard]] constexpr int get_id() const noexcept {
+                return static_cast<int>(this->id);
             }
 
         private:
             typename component_storage_t::component_info::mask_type m_component_mask{};
             typename component_storage_t::tag_info::mask_type       m_tag_mask{};
             key_storage_t m_component_keys {};
-            bool isAlive{true};
+
+            std::size_t id{next_id++};
+            bool alive{true};
 
             inline static std::size_t next_id{1};
 
         };
 
+        /**
+         * Constructor
+         **/
         EntityManager(std::size_t default_size = 100) {
             m_entities.reserve(default_size);
         }
@@ -80,7 +99,7 @@ namespace ADE {
         }
 
         template<typename COMPONENT>
-        COMPONENT& get_component(Entity& entity) {
+        COMPONENT& get_component(Entity const& entity) {
             assert(entity.template has_component<COMPONENT>());
             auto& storage = m_components.template get_storage<COMPONENT>();
             to_key_type<COMPONENT> key = entity.template get_component_key<COMPONENT>();
