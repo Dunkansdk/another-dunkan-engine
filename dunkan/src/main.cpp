@@ -48,10 +48,10 @@ void game_entities(EntityManager& entity_manager) {
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
         .diffuse_color = sf::Color(255,255,224),
         .specular_color = sf::Color::White,
-        .direction = sf::Vector3f(-1,.5,-1),
         .contant_attenuation = .9f,
-        .quadratic_attenuation = 0.00001,
         .linear_attenuation = 0.00001,
+        .quadratic_attenuation = 0.00001,
+        .direction = sf::Vector3f(-1,.5,-1),
         .global_light = true
     });
 
@@ -65,9 +65,9 @@ void game_entities(EntityManager& entity_manager) {
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
         .diffuse_color = sf::Color::Red,
         .specular_color = sf::Color::White,
+        .linear_attenuation = 0.000001f,
+        .quadratic_attenuation = 0.00001f,
         .direction = sf::Vector3f(0, 0, 1),
-        .quadratic_attenuation = 0.00001,
-        .linear_attenuation = 0.000001
     });
 }
 
@@ -155,13 +155,13 @@ int main() {
 
     sf::View view = window.getDefaultView();
     view.setSize(video_mode.width, video_mode.height);
-    view.setCenter(video_mode.width / 2, video_mode.height / 2);
+    view.setCenter(video_mode.width / 2.0f, video_mode.height / 2.0f);
 
     sf::ContextSettings context_settings;
     context_settings.depthBits = 24;
     context_settings.stencilBits = 8;
     context_settings.antialiasingLevel = 2;
-    //context_settings.attributeFlags = sf::ContextSettings::Core;
+    context_settings.attributeFlags = sf::ContextSettings::Core;
 
     window.create(video_mode, "Window", sf::Style::Close | sf::Style::Titlebar, context_settings);
     window.setView(view);
