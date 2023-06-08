@@ -12,19 +12,15 @@ struct CameraSystem {
 
     void update(sf::RenderWindow& window, float delta) {
 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            movement.x -= 250.0f;
-            std::cout << "Movement {" << movement.x << ", " << movement.y << "}\n";
-        }
-            
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
+            movement.x -= 500;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
-            movement.x += 250.0f;
+            movement.x += 500;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-            movement.y -= 250.0f;
+            movement.y -= 500;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
-            movement.y += 250.0f;
+            movement.y += 500;
 
-        
         sf::View view = window.getView();
         view.move(movement * delta);
         window.setView(view);

@@ -13,6 +13,7 @@ using LightSystem_t = ADE::META_TYPES::Typelist<>;
 struct DebugSystem {
 
     void update(EntityManager& entity_manager) {
+
         ImGui::Begin("Entities");
 
         entity_manager.foreach<RenderSystem_c, RenderSystem_t>
@@ -41,12 +42,12 @@ struct DebugSystem {
                 ImGui::DragFloat("X", &physics.x, 1.0f);
                 ImGui::DragFloat("Y", &physics.y, 1.0f);
                 ImGui::DragFloat("Z", &physics.z, .01f);
-                ImGui::DragFloat("directionx", &light.direction.x, 1.0f);
-                ImGui::DragFloat("directiony", &light.direction.y, .1f);
+                ImGui::DragFloat("directionx", &light.direction.x, .01f);
+                ImGui::DragFloat("directiony", &light.direction.y, .01f);
                 ImGui::DragFloat("directionz", &light.direction.z, .01f);
                 ImGui::DragFloat("contant_attenuation", &light.contant_attenuation, .01f);
-                ImGui::DragFloat("linear_attenuation", &light.linear_attenuation, .0001f);
-                ImGui::DragFloat("quadratic_attenuation", &light.quadratic_attenuation, .0001f);
+                ImGui::DragFloat("linear_attenuation", &light.linear_attenuation, .00001f);
+                ImGui::DragFloat("quadratic_attenuation", &light.quadratic_attenuation, .00001f);
                 ImGui::TreePop();
             }
         });

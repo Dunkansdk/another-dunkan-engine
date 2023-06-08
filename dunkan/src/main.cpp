@@ -19,41 +19,55 @@ sf::Clock m_clock;
 void game_entities(EntityManager& entity_manager) {
 
     Entity& entity1 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{.x = 350.f, .y = 10.f, .z = 0.f});
+    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{
+        .x = 350.f,
+        .y = 10.f,
+        .z = 0.5f
+    });
     RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, RenderComponent{});
     render.set_texture("data/abbey_albedo.png");
     render.set_3D_textures("data/abbey_height.png", "data/abbey_normal.png");
 
     Entity& entity2 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{ .x = 140.f, .y = 180.f, .z = 0.f});
+    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{
+        .x = 140.f,
+        .y = 180.f,
+        .z = 0.5
+    });
     RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{});
     render2.set_texture("data/tree_albedo.png");
     render2.set_3D_textures("data/tree_height.png", "data/tree_normal.png");
 
-    // Entity& entity3 = entity_manager.create_entity();
-    // entity_manager.add_component<PhysicsComponent>(entity3, PhysicsComponent{
-    //     .x = 700.f,
-    //     .y = 700.f,
-    //     .z = 0.f
-    // });
-    // entity_manager.add_component<LightComponent>(entity3, LightComponent{
-    //     .diffuse_color = sf::Color::Green,
-    //     .specular_color = sf::Color::White,
-    //     .direction = sf::Vector3f(-1,.5,-1)
-    // });
+    // Sunlight
+    Entity& entity3 = entity_manager.create_entity();
+    entity_manager.add_component<PhysicsComponent>(entity3, PhysicsComponent{
+        .x = 900.f,
+        .y = 900.f,
+        .z = .5f
+    });
+    entity_manager.add_component<LightComponent>(entity3, LightComponent{
+        .diffuse_color = sf::Color(255,255,224),
+        .specular_color = sf::Color::White,
+        .direction = sf::Vector3f(-1,.5,-1),
+        .contant_attenuation = .9f,
+        .quadratic_attenuation = 0.00001,
+        .linear_attenuation = 0.00001,
+        .global_light = true
+    });
 
+    // Spotlight
     Entity& entity4 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
         .x = 500.f,
-        .y = 10.f,
-        .z = .2f
+        .y = 200.f,
+        .z = .5f
     });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
         .diffuse_color = sf::Color::Red,
         .specular_color = sf::Color::White,
-        .direction = sf::Vector3f(.2 ,-1,-1),
+        .direction = sf::Vector3f(0, 0, 1),
         .quadratic_attenuation = 0.00001,
-        .linear_attenuation = 0.00001
+        .linear_attenuation = 0.000001
     });
 }
 
@@ -63,6 +77,8 @@ void imgui_form(sf::RenderWindow& window) {
     config.setup();
 }
 
+bool render_load = false;
+
 void update(sf::RenderWindow& window) {
     EntityManager entity_manager;
     RenderSystem render_system {};
@@ -70,6 +86,11 @@ void update(sf::RenderWindow& window) {
     DebugSystem debug_system {}; 
     CameraSystem camera_system {};
     MoveEntitySystem move_entity_system {};
+
+    if(!render_load) {
+        render_system.init_renderer(window);
+        render_load = true;
+    }
 
     game_entities(entity_manager);
 
@@ -100,6 +121,7 @@ void update(sf::RenderWindow& window) {
         ImGui::Text("FPS: %f", (float)m_fps);
         ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
         ImGui::Checkbox("Heightmaps", &render_system.debug_heightmap);
+        ImGui::Checkbox("SSAO", &render_system.m_enableSSAO);
         ImGui::End();
         debug_system.update(entity_manager);
 #endif
@@ -108,6 +130,9 @@ void update(sf::RenderWindow& window) {
         camera_system.update(window, dt.asSeconds());
         physics_system.update(entity_manager, dt.asSeconds());
         render_system.update(entity_manager, window);
+
+        window.display();
+
 
         if(m_clock.getElapsedTime().asSeconds() >= 1.f)
 		{
@@ -119,6 +144,7 @@ void update(sf::RenderWindow& window) {
 		++m_frame;
     }
 
+    render_system.destroy();
     window.close();
 }
 
@@ -133,7 +159,8 @@ int main() {
 
     sf::ContextSettings context_settings;
     context_settings.depthBits = 24;
-    context_settings.antialiasingLevel = 1;
+    context_settings.stencilBits = 8;
+    context_settings.antialiasingLevel = 2;
     //context_settings.attributeFlags = sf::ContextSettings::Core;
 
     window.create(video_mode, "Window", sf::Style::Close | sf::Style::Titlebar, context_settings);

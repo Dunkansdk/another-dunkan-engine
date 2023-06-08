@@ -25,6 +25,11 @@ struct LightSystem {
             GLfloat glColor[] = {1, 1, 1, 1};
 
             position = sf::Vector3f(physics.x, physics.y, physics.z);
+            
+            if(light.global_light) {
+                gl_position[3] = 0;
+            }
+
             gl_position[0] = position.x;
             gl_position[1] = position.y;
             gl_position[2] = position.z;
