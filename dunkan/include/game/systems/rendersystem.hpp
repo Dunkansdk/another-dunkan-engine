@@ -48,7 +48,8 @@ const std::string color_fragShader = \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    "   gl_FragDepth = 1.0 - color_pixel.a*(0.5 + z_pixel * 0.001);" \
+    "   if(color_pixel.a > 0.1) {"
+    "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);} else {gl_FragDepth = 1.0;}" \
     "   gl_FragColor = gl_Color * color_pixel; " \
     "}";
 
@@ -60,18 +61,20 @@ const std::string depth_fragShader = \
     "uniform float z_position;" \
     "void main()" \
     "{" \
-    "   float colorAlpha = texture2D(color_map, gl_TexCoord[0].xy).a;" \
+    "   float color_alpha = texture2D(color_map, gl_TexCoord[0].xy).a;" \
+    "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
     "   float height_pixel = 0.0; "
     "   if(useDepthMap == true){"
     "        vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    "   gl_FragDepth = 1.0 - colorAlpha * (0.5 + z_pixel * 0.001);" \
+    "   if(color_pixel.a > 0.1) {"
+    "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);} else {gl_FragDepth = 1.0;}" \
     "   gl_FragColor.r = gl_FragDepth;" \
     "   gl_FragColor.g = (gl_FragDepth - 256.0 * floor(gl_FragDepth / 256.0))*256.0;" \
     "   gl_FragColor.b = (gl_FragDepth - 65536.0 * floor(gl_FragDepth / (65536.0)))*65536.0;" \
-    "   gl_FragColor.a = colorAlpha;" \
+    "   gl_FragColor.a = color_pixel.a;" \
     "}";
 
 const std::string normal_fragShader = \
@@ -84,8 +87,9 @@ const std::string normal_fragShader = \
     "uniform float z_position;" \
     "void main()" \
     "{" \
-    "   float colorAlpha = texture2D(color_map, gl_TexCoord[0].xy).a;" \
-	"	vec3 direction = vec3(0.0, 0.0, 1.0);"
+    "   float color_alpha = texture2D(color_map, gl_TexCoord[0].xy).a;" \
+    "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
+	"	vec3 direction = vec3(0.0, 0.0, -1.0);"
 	"   if(useNormalMap){"
 	"       direction = -1.0 + 2.0 * texture2D(normal_map, gl_TexCoord[0].xy).rgb;"
 	"   }"
@@ -95,9 +99,10 @@ const std::string normal_fragShader = \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    "   gl_FragDepth = 1.0 - colorAlpha * (0.5 + z_pixel * 0.001);" \
+    "   if(color_pixel.a > 0.1) {"
+    "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);} else {gl_FragDepth = 1.0;}" \
     "   gl_FragColor.rgb = 0.5 + direction * 0.5;" \
-    "   gl_FragColor.a = colorAlpha;" \
+    "   gl_FragColor.a = color_alpha;" \
     "}";
 
 const std::string lighting_fragShader = \
@@ -135,14 +140,14 @@ const std::string lighting_fragShader = \
 	"	    else" \
 	"	    {" \
 	"	    	light_direction = gl_LightSource[i].position.xyz - frag_pos.xyz;" \
-	"	    	float dist = length(light_direction);" \
-	"	    	lighting = 1.0/( gl_LightSource[i].constantAttenuation +" \
+    "	    	float dist = length(light_direction) / 100.0;" \
+	"	    	lighting = 1.0 /( gl_LightSource[i].constantAttenuation +" \
 	"	    							  dist*gl_LightSource[i].linearAttenuation +" \
 	"	    							  dist*dist*gl_LightSource[i].quadraticAttenuation);" \
 	"	    }" \
 	"       lighting *= max(0.0, dot(direction,normalize(light_direction)));"
 	"	    lighting *= gl_LightSource[i].diffuse.a;" \
-	"	    gl_FragColor.rgb +=  gl_Color.rgb * color_pixel.rgb * gl_LightSource[i].diffuse.rgb  * lighting;" \
+	"	    gl_FragColor.rgb +=  gl_Color.rgb * color_pixel.rgb * gl_LightSource[i].diffuse.rgb * lighting;" \
 	"   }"
     "   if(useSSAO == true) {"
 	"       float occlusion  = (texture2D(SSAOMap, gl_TexCoord[0].xy + vec2(0,0) * screen_ratio).b * 4.0"
@@ -186,7 +191,7 @@ const std::string SSAO_fragShader = \
 	"       vec3 screen_pos = gl_FragCoord.xyz + decal;"
 	"       vec3 occl_depth_pixel = texture2D(depth_map, (screen_pos.xy) * screen_ratio).rgb;"
 	"       float occl_height = (0.5 - (occl_depth_pixel.r + occl_depth_pixel.g / 256.0 + occl_depth_pixel.b / 65536.0)) * 1000.0;"
-    "       if(occl_height > (frag_pos.z+decal.z) + 1.0  "
+    "       if(occl_height > (frag_pos.z+decal.z) + 1.0"
     "        && occl_height - (frag_pos.z+decal.z) < 20.0)"
     "           occlusion += 1.0;"
 	"   } "
@@ -247,27 +252,12 @@ struct RenderSystem {
         m_lightingShader.setUniform("color_map",m_colorScreen.getTexture());
         m_lightingShader.setUniform("normal_map",m_normalScreen.getTexture());
         m_lightingShader.setUniform("depth_map",m_depthScreen.getTexture());
-        m_lightingShader.setUniform("screen_ratio",sf::Vector2f(1.0/(float)m_colorScreen.getSize().x,
-                                                                1.0/(float)m_colorScreen.getSize().y));
+        m_lightingShader.setUniform("screen_ratio",sf::Vector2f(1.0 / (float)m_colorScreen.getSize().x,
+                                                                1.0 / (float)m_colorScreen.getSize().y));
 
         m_rendererStates.shader = &m_lightingShader;
 
-        if(m_enableSSAO)
-        {
-            m_lightingShader.setUniform("useSSAO", true);
-            m_lightingShader.setUniform("SSAOMap", m_SSAOScreen.getTexture());
-            m_SSAOShader.setUniform("normal_map", m_normalScreen.getTexture());
-            m_SSAOShader.setUniform("depth_map", m_depthScreen.getTexture());
-            m_SSAOShader.setUniform("screen_ratio",sf::Vector2f(1.0/(float)m_depthScreen.getSize().x,
-                                                                1.0/(float)m_depthScreen.getSize().y));
-
-            m_SSAOrenderer.setSize(sf::Vector2f(m_depthScreen.getSize().x,
-                                                m_depthScreen.getSize().y));
-            //m_SSAOrenderer.setTextureRect(sf::IntRect(0,0,windowSize.x*m_superSampling, windowSize.y*m_superSampling));
-            m_SSAOrenderer.setTexture(&m_colorScreen.getTexture());
-        } else {
-            m_lightingShader.setUniform("useSSAO", false);
-        }
+        SSAO_option(true);
 
         sf::Glsl::Vec3 samples_hemisphere[16];
         samples_hemisphere[0] = sf::Glsl::Vec3(.4,0,.8);
@@ -313,8 +303,6 @@ struct RenderSystem {
 
     void update(EntityManager& entity_manager, sf::RenderWindow& window) {
         window.clear();
-        // glClearDepth(0.0);
-        // glClear(GL_DEPTH_BUFFER_BIT);
 
         int nbr_lights = light_system.update(entity_manager);
         m_lightingShader.setUniform("nbr_lights",(int)nbr_lights);
@@ -333,7 +321,7 @@ struct RenderSystem {
             glClear(GL_DEPTH_BUFFER_BIT);
             glEnable(GL_DEPTH_TEST);
             glDepthMask(GL_TRUE);
-            m_depthScreen.clear();
+            m_depthScreen.clear(sf::Color::White);
             m_depthScreen.setView(current_view);
         m_depthScreen.setActive(false);
 
@@ -358,6 +346,16 @@ struct RenderSystem {
             sf::RenderStates state;
             state.transform = totalTransform;
 
+            m_colorScreen.setActive(true);
+                m_colorShader.setUniform("z_position",physics.z);
+                render.prepare_shader(&m_colorShader);
+                state.shader = &m_colorShader;
+                m_colorScreen.draw(render, state);
+                if(render.is_selected) {
+                    _debug_render_lines(render, m_colorScreen);
+                }
+            m_colorScreen.setActive(false);
+
             m_normalScreen.setActive(true);
                 m_normalShader.setUniform("z_position",physics.z);
                 render.prepare_shader(&m_normalShader);
@@ -371,17 +369,7 @@ struct RenderSystem {
                 state.shader = &m_depthShader;
                 m_depthScreen.draw(render, state);
             m_depthScreen.setActive(false);
-            
-            m_colorScreen.setActive(true);
-                m_colorShader.setUniform("z_position",physics.z);
-                render.prepare_shader(&m_colorShader);
-                state.shader = &m_colorShader;
-                m_colorScreen.draw(render, state);
-                state.shader = nullptr;
-                if(render.is_selected) {
-                    _debug_render_lines(render, m_colorScreen);
-                }
-            m_colorScreen.setActive(false);
+        
         });
 
 #ifdef DEBUG_IMGUI
@@ -401,7 +389,7 @@ struct RenderSystem {
             m_SSAOScreen.draw(m_SSAOrenderer,&m_SSAOShader);
             m_SSAOScreen.display();
         }
-        
+
         window.draw(m_renderer, m_rendererStates);
     }
 
@@ -410,6 +398,29 @@ struct RenderSystem {
         m_colorScreen.clear();
         m_depthScreen.clear();
         m_SSAOScreen.clear();
+    }
+
+    void SSAO_option(bool ssao_value) {
+        m_enableSSAO = ssao_value;
+
+        if(m_enableSSAO)
+        {
+            m_lightingShader.setUniform("useSSAO", true);
+            m_lightingShader.setUniform("SSAOMap", m_SSAOScreen.getTexture());
+            m_SSAOShader.setUniform("normal_map", m_normalScreen.getTexture());
+            m_SSAOShader.setUniform("depth_map", m_depthScreen.getTexture());
+            m_SSAOShader.setUniform("screen_ratio",sf::Vector2f(1.0 / (float)m_depthScreen.getSize().x,
+                                                                1.0 / (float)m_depthScreen.getSize().y));
+
+            m_SSAOrenderer.setSize(sf::Vector2f(m_depthScreen.getSize().x,
+                                                m_depthScreen.getSize().y));
+            //m_SSAOrenderer.setTextureRect(sf::IntRect(0,0,windowSize.x*m_superSampling, windowSize.y*m_superSampling));
+            m_SSAOrenderer.setTexture(&m_colorScreen.getTexture());
+        } else {
+            m_lightingShader.setUniform("useSSAO", false);
+        }
+
+        std::cout << "##### SSAO STATUS: " << m_enableSSAO << "\n";
     }
 
 private:

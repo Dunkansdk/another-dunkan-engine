@@ -60,7 +60,6 @@ set(IMGUI_SFML_IMGUI_DEMO ON)
 
 FetchContent_MakeAvailable(imgui-sfml)
 
-
 #----------------------------------
 set(SFML_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/sfml-build/include/)
 set(APP_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/include/)
@@ -71,11 +70,11 @@ include_directories (/usr/include/freetype2)
 # application target
 add_executable (app ${APP_SRC_FILES}) 
 if(WIN32 OR WIN64)
-  target_link_libraries(app sfml-window sfml-system sfml-graphics ImGui-SFML::ImGui-SFML)
+  target_link_libraries(app sfml-graphics sfml-window sfml-system ImGui-SFML::ImGui-SFML)
 elseif(APPLE)
-  target_link_libraries(app sfml-window sfml-system sfml-graphics pthread ImGui-SFML::ImGui-SFML)
+  target_link_libraries(app sfml-graphics sfml-window sfml-system ImGui-SFML::ImGui-SFML)
 else()
-  target_link_libraries(app sfml-window sfml-system sfml-graphics pthread X11 ImGui-SFML::ImGui-SFML)
+  target_link_libraries(app sfml-graphics sfml-window sfml-system pthread X11 ImGui-SFML::ImGui-SFML)
 endif()
 
 source_group("src" FILES ${APP_SRC_FILES})

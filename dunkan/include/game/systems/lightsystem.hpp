@@ -24,25 +24,29 @@ struct LightSystem {
             GLfloat gl_direction[] = {0, 0, 1};
             GLfloat glColor[] = {1, 1, 1, 1};
 
+            if(light.radius < 0.f) light.radius = 0.f;
+            if(light.intensity < 0.f) light.intensity = 0.f;
+
             position = sf::Vector3f(physics.x, physics.y, physics.z);
             
-            if(light.global_light) {
+            if(light.light_type == LightType::Directional) {
                 gl_position[3] = 0;
             }
 
             gl_position[0] = position.x;
-            gl_position[1] = position.y;
+            gl_position[1] = position.y - physics.z;
             gl_position[2] = position.z;
-
-            // TODO: DIRECTIONAL_LIGHT
-            //gl_position[3] = 0;
 
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_POSITION, gl_position);
             SfColorToGlColor(light.diffuse_color, glColor);
+            glColor[0] *= light.intensity;
+            glColor[1] *= light.intensity;
+            glColor[2] *= light.intensity;
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_DIFFUSE, glColor);
             SfColorToGlColor(light.specular_color, glColor);
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_SPECULAR, glColor);
-            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.contant_attenuation);
+            // glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.contant_attenuation);
+            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.radius);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_LINEAR_ATTENUATION, light.linear_attenuation);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_QUADRATIC_ATTENUATION, light.quadratic_attenuation);
 

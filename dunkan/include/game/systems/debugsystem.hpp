@@ -41,13 +41,13 @@ struct DebugSystem {
             {
                 ImGui::DragFloat("X", &physics.x, 1.0f);
                 ImGui::DragFloat("Y", &physics.y, 1.0f);
-                ImGui::DragFloat("Z", &physics.z, .01f);
+                ImGui::DragFloat("Z", &physics.z, 1.0f);
                 ImGui::DragFloat("directionx", &light.direction.x, .01f);
                 ImGui::DragFloat("directiony", &light.direction.y, .01f);
                 ImGui::DragFloat("directionz", &light.direction.z, .01f);
-                ImGui::DragFloat("contant_attenuation", &light.contant_attenuation, .01f);
-                ImGui::DragFloat("linear_attenuation", &light.linear_attenuation, .00001f);
-                ImGui::DragFloat("quadratic_attenuation", &light.quadratic_attenuation, .00001f);
+                ImGui::DragFloat("intensity", &light.intensity, .01f);
+                ImGui::DragFloat("radius", &light.radius, .01f);
+                
                 ImGui::TreePop();
             }
         });
