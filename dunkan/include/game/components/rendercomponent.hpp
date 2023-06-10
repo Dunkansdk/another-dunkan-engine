@@ -9,8 +9,6 @@
 #include <imgui.h>
 #include <imgui-SFML.h>
 
-#define GL_SILENCE_DEPRECATION
-
 struct RenderComponent : public sf::Sprite {
 
     void set_texture(std::string filename)

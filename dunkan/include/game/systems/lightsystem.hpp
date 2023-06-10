@@ -39,9 +39,10 @@ struct LightSystem {
 
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_POSITION, gl_position);
             SfColorToGlColor(light.diffuse_color, glColor);
-            glColor[0] *= light.intensity;
-            glColor[1] *= light.intensity;
-            glColor[2] *= light.intensity;
+            glColor[0] *= light.intensity + (position.z * .01f);
+            glColor[1] *= light.intensity + (position.z * .01f);
+            glColor[2] *= light.intensity + (position.z * .01f);
+
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_DIFFUSE, glColor);
             SfColorToGlColor(light.specular_color, glColor);
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_SPECULAR, glColor);
@@ -49,12 +50,13 @@ struct LightSystem {
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.radius);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_LINEAR_ATTENUATION, light.linear_attenuation);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_QUADRATIC_ATTENUATION, light.quadratic_attenuation);
-
+            
             position = light.direction;
             gl_direction[0] = position.x;
             gl_direction[1] = position.y;
             gl_direction[2] = position.z;
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_SPOT_DIRECTION, gl_direction);
+            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_SPOT_EXPONENT, 3.0f);
             
             ++m_current_nbr_light;
         });

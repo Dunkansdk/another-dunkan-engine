@@ -10,9 +10,6 @@
 #include "game/systems/rendersystem.hpp"
 #include "game/systems/moveentitysystem.hpp"
 
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-
 #include "game/imguiconfig.hpp"
 
 unsigned int m_frame;
@@ -63,13 +60,13 @@ bool game_entities(EntityManager& entity_manager) {
     entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
         .x = 500.f,
         .y = 200.f,
-        .z = .5f
+        .z = 3.f
     });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
         .light_type = LightType::Spot,
         .diffuse_color = sf::Color::Red,
         .specular_color = sf::Color::White,
-        .direction = sf::Vector3f(0, 0, 1),
+        .direction = sf::Vector3f(0, -1.0, 0),
         .radius = 3.f,
         .intensity = 10.f
     });
@@ -119,8 +116,6 @@ void update(sf::RenderWindow& window) {
         render_system.init_renderer(window);
         render_load = true;
     }
-
-    window.setActive(true);
 
     if(game_entities(entity_manager)) {
 

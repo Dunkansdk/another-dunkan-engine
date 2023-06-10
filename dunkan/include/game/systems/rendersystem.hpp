@@ -260,7 +260,7 @@ struct RenderSystem {
         SSAO_option(true);
 
         sf::Glsl::Vec3 samples_hemisphere[16];
-        samples_hemisphere[0] = sf::Glsl::Vec3(.4,0,.8);
+        samples_hemisphere[0 ] = sf::Glsl::Vec3(.4,0,.8);
         samples_hemisphere[1] = sf::Glsl::Vec3(0,.2,.4);
         samples_hemisphere[2] = sf::Glsl::Vec3(.1,0,.2);
         samples_hemisphere[3] = sf::Glsl::Vec3(0,0,.1);
@@ -288,8 +288,8 @@ struct RenderSystem {
         for(int y = 0 ; y < 4 ; ++y)
         {
             sf::Color c = sf::Color::White;
-            c.r = (int)(static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/255)));
-            c.g = (int)(static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/255)));
+            c.r = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
+            c.g = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
             c.r = 1;
             m_SSAONoisePattern.setPixel(x,y,c);
         }
@@ -347,13 +347,13 @@ struct RenderSystem {
             state.transform = totalTransform;
 
             m_colorScreen.setActive(true);
+                if(render.is_selected) {
+                    _debug_render_lines(render, m_colorScreen);
+                }
                 m_colorShader.setUniform("z_position",physics.z);
                 render.prepare_shader(&m_colorShader);
                 state.shader = &m_colorShader;
                 m_colorScreen.draw(render, state);
-                if(render.is_selected) {
-                    _debug_render_lines(render, m_colorScreen);
-                }
             m_colorScreen.setActive(false);
 
             m_normalScreen.setActive(true);
@@ -409,12 +409,11 @@ struct RenderSystem {
             m_lightingShader.setUniform("SSAOMap", m_SSAOScreen.getTexture());
             m_SSAOShader.setUniform("normal_map", m_normalScreen.getTexture());
             m_SSAOShader.setUniform("depth_map", m_depthScreen.getTexture());
-            m_SSAOShader.setUniform("screen_ratio",sf::Vector2f(1.0 / (float)m_depthScreen.getSize().x,
-                                                                1.0 / (float)m_depthScreen.getSize().y));
-
+            m_SSAOShader.setUniform("screen_ratio", 
+                sf::Vector2f(1.0 / (float)m_depthScreen.getSize().x,
+                             1.0 / (float)m_depthScreen.getSize().y));
             m_SSAOrenderer.setSize(sf::Vector2f(m_depthScreen.getSize().x,
                                                 m_depthScreen.getSize().y));
-            //m_SSAOrenderer.setTextureRect(sf::IntRect(0,0,windowSize.x*m_superSampling, windowSize.y*m_superSampling));
             m_SSAOrenderer.setTexture(&m_colorScreen.getTexture());
         } else {
             m_lightingShader.setUniform("useSSAO", false);

@@ -26,15 +26,7 @@ struct CameraSystem {
         window.setView(view);
 
         movement = {0.f, 0.f};
-        
-        // entity_manager.foreach<CameraSystem_c, CameraSystem_t>
-        // ([&](Entity& entity, CameraComponent& camera, PhysicsComponent& physics)
-        // {
-        //     sf::View view = window.getView();
-        //     view.setSize(camera.getSize());
-        //     view.setCenter((view.getViewport().height * 0.5), (view.getViewport().width * 0.5));
-        //     window.setView(view);
-        // });
+
     }
 
 private:
