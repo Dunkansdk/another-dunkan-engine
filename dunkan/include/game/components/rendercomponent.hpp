@@ -11,6 +11,13 @@
 
 struct RenderComponent : public sf::Sprite {
 
+    RenderComponent() : sf::Sprite() {}
+
+    RenderComponent(sf::Texture& normal, sf::Texture& depth) : sf::Sprite() {
+        m_normal = normal;
+        m_depth = depth;
+    }
+
     void set_texture(std::string filename)
     {
         if(m_texture.loadFromFile(filename)) {
@@ -69,10 +76,9 @@ struct RenderComponent : public sf::Sprite {
     float scale;
     bool is_selected{false};
     bool moveable{true};
-
-private:
     sf::Texture m_texture;
     sf::Texture m_depth;
     sf::Texture m_normal;
+
 };
 

@@ -47,12 +47,12 @@ struct MoveEntitySystem {
                 }
                 
                 sf::FloatRect entity_rect;
-                entity_rect.height = render.getGlobalBounds().height * 0.6;
-                entity_rect.width = render.getGlobalBounds().width * 0.6;
-                entity_rect.top = render.getGlobalBounds().top * 0.6;
-                entity_rect.left = render.getGlobalBounds().left * 0.6;
+                entity_rect.height = render.getGlobalBounds().height * 0.6f;
+                entity_rect.width = render.getGlobalBounds().width * 0.6f;
+                entity_rect.top = render.getGlobalBounds().top * 0.6f;
+                entity_rect.left = render.getGlobalBounds().left * 0.6f;
 
-                if (render.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window))))
+                if (render.moveable && render.getGlobalBounds().contains(window.mapPixelToCoords(sf::Mouse::getPosition(window))))
                 {
                     if(event.type == sf::Event::MouseButtonPressed) {
                         SelectedEntity tmp_selected{get_optimal_selection(entity, render, x, y)};

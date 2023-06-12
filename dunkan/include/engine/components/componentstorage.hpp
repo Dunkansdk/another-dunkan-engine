@@ -12,7 +12,6 @@ namespace ADE {
     template <typename COMPONENT_LIST, typename SINGLETON_LIST, typename TAG_LIST, std::size_t Capacity = 10>
     struct ComponentStorage {
 
-        // TODO: is this necessary?
         explicit ComponentStorage() = default;
         ComponentStorage(ComponentStorage&) = delete;
         ComponentStorage(ComponentStorage&&) = delete;

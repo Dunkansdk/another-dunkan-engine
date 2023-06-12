@@ -18,26 +18,43 @@ sf::Clock m_clock;
 
 bool game_entities(EntityManager& entity_manager) {
 
+    TextureManager texture_manager {};
+
+    texture_manager.load(std::string("Abbey-Albedo"), std::string("data/abbey_albedo.png"));
+    texture_manager.load(std::string("Abbey-Depth"), std::string("data/abbey_height.png"));
+    texture_manager.load(std::string("Abbey-Normal"), std::string("data/abbey_normal.png"));
+
+    texture_manager.load(std::string("Tree-Albedo"), std::string("data/tree_albedo.png"));
+    texture_manager.load(std::string("Tree-Depth"), std::string("data/tree_height.png"));
+    texture_manager.load(std::string("Tree-Normal"), std::string("data/tree_normal.png"));
+
     Entity& entity1 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{
         .x = 350.f,
         .y = 10.f,
         .z = .5f
     });
-    RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, RenderComponent{});
+    RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, 
+        RenderComponent{
+            texture_manager.get("Abbey-Normal"), 
+            texture_manager.get("Abbey-Depth")
+        });
     render.set_texture("data/abbey_albedo.png");
-    render.set_3D_textures("data/abbey_height.png", "data/abbey_normal.png");
+    // render.set_3D_textures("data/abbey_height.png", "data/abbey_normal.png");
     render.height = 460;
 
     Entity& entity2 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{
         .x = 140.f,
         .y = 180.f,
-        .z = .5f
+        .z = -.65f
     });
-    RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{});
+    RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
+            texture_manager.get("Tree-Normal"), 
+            texture_manager.get("Tree-Depth")
+        });
     render2.set_texture("data/tree_albedo.png");
-    render2.set_3D_textures("data/tree_height.png", "data/tree_normal.png");
+    // render2.set_3D_textures("data/tree_height.png", "data/tree_normal.png");
     render2.height = 300;
 
     // Sunlight
@@ -71,29 +88,29 @@ bool game_entities(EntityManager& entity_manager) {
         .intensity = 10.f
     });
 
-    Entity& entity5 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity5, PhysicsComponent{
-        .x = 16.f,
-        .y = 16.f,
-        .z = .5f
-    });
-    RenderComponent& render3 = entity_manager.add_component<RenderComponent>(entity5, RenderComponent{});
-    render3.set_texture("data/cliff_albedo.png");
-    render3.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
-    render3.height = 10;
-    render3.moveable = false;
+    // Entity& entity5 = entity_manager.create_entity();
+    // entity_manager.add_component<PhysicsComponent>(entity5, PhysicsComponent{
+    //     .x = 16.f,
+    //     .y = 16.f,
+    //     .z = .5f
+    // });
+    // RenderComponent& render3 = entity_manager.add_component<RenderComponent>(entity5, RenderComponent{});
+    // render3.set_texture("data/cliff_albedo.png");
+    // render3.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
+    // render3.height = 10;
+    // render3.moveable = false;
 
-    Entity& entity6 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity6, PhysicsComponent{
-        .x = 1040.f,
-        .y = 16.f,
-        .z = .5f
-    });
-    RenderComponent& render4 = entity_manager.add_component<RenderComponent>(entity6, RenderComponent{});
-    render4.set_texture("data/cliff_albedo.png");
-    render4.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
-    render4.height = 10;
-    render4.moveable = false;
+    // Entity& entity6 = entity_manager.create_entity();
+    // entity_manager.add_component<PhysicsComponent>(entity6, PhysicsComponent{
+    //     .x = 1040.f,
+    //     .y = 16.f,
+    //     .z = .5f
+    // });
+    // RenderComponent& render4 = entity_manager.add_component<RenderComponent>(entity6, RenderComponent{});
+    // render4.set_texture("data/cliff_albedo.png");
+    // render4.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
+    // render4.height = 10;
+    // render4.moveable = false;
 
     return true;
 }
@@ -114,12 +131,12 @@ void update(sf::RenderWindow& window) {
     CameraSystem camera_system {};
     MoveEntitySystem move_entity_system {};
 
-    if(!render_load) {
-        render_system.init_renderer(window);
-        render_load = true;
-    }
-
     if(game_entities(entity_manager)) {
+
+        if(!render_load) {
+            render_system.init_renderer(window);
+            render_load = true;
+        }
 
         imgui_form(window);
     

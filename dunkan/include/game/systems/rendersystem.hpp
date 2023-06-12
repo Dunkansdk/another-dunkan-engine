@@ -372,13 +372,13 @@ struct RenderSystem {
         
         });
 
+        #ifdef DEBUG_IMGUI
+        ImGui::SFML::Render(m_colorScreen);
+        #endif
+
         m_colorScreen.display();
         m_depthScreen.display();
         m_normalScreen.display();
-
-        #ifdef DEBUG_IMGUI
-                ImGui::SFML::Render(m_colorScreen);
-        #endif
 
         if(m_enableSSAO)
         {
@@ -438,7 +438,9 @@ private:
             sf::Vertex(sf::Vector2f(initial_x, initial_y)),
         };
 
-        window.draw(line, 5, sf::LineStrip);
+        sf::RenderStates debug_state = sf::RenderStates::Default;     
+
+        window.draw(line, 5, sf::LineStrip, debug_state);
     }
 
     LightSystem light_system {};
