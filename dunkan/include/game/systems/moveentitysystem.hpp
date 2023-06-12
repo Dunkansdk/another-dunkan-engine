@@ -14,15 +14,19 @@ struct MoveEntitySystem {
 
     void update(EntityManager& entity_manager, sf::RenderWindow& window, sf::Event& event) {
 
-        float x = window.mapPixelToCoords(sf::Mouse::getPosition(window)).x;
-        float y = window.mapPixelToCoords(sf::Mouse::getPosition(window)).y;
+        sf::View current_view = window.getView();
+        sf::Vector2f view_shift = current_view.getCenter();
+        view_shift -= sf::Vector2f(current_view.getSize().x / 2, current_view.getSize().y / 2);
+
+        float x = window.mapPixelToCoords(sf::Mouse::getPosition(window)).x + view_shift.x;
+        float y = window.mapPixelToCoords(sf::Mouse::getPosition(window)).y + view_shift.y;
 
         if(!ImGui::GetIO().WantCaptureMouse && sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
 
             entity_manager.foreach<MoveEntitySystem_c, MoveEntitySystem_t>
             ([&](Entity& entity, RenderComponent& render, PhysicsComponent& physics)
             {
-                if(selected.id == entity.get_id()) {
+                if(render.moveable && selected.id == entity.get_id()) {
                     if(!render.is_selected) render.is_selected = true;
 
                     // Move entity

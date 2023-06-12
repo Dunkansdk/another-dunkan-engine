@@ -12,7 +12,7 @@ using LightSystem_t = ADE::META_TYPES::Typelist<>;
 
 struct LightSystem {
 
-    int update(EntityManager& entity_manager) {
+    int update(EntityManager& entity_manager, sf::Vector2f view_shift) {
 
         m_current_nbr_light = 0;
 
@@ -27,14 +27,14 @@ struct LightSystem {
             if(light.radius < 0.f) light.radius = 0.f;
             if(light.intensity < 0.f) light.intensity = 0.f;
 
-            position = sf::Vector3f(physics.x, physics.y, physics.z);
+            position = physics.position(view_shift);
             
             if(light.light_type == LightType::Directional) {
                 gl_position[3] = 0;
             }
 
             gl_position[0] = position.x;
-            gl_position[1] = position.y - physics.z;
+            gl_position[1] = position.y;
             gl_position[2] = position.z;
 
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_POSITION, gl_position);

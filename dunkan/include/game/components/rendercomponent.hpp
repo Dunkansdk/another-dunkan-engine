@@ -68,6 +68,7 @@ struct RenderComponent : public sf::Sprite {
     float height;
     float scale;
     bool is_selected{false};
+    bool moveable{true};
 
 private:
     sf::Texture m_texture;

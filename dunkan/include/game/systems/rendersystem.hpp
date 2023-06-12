@@ -48,7 +48,7 @@ const std::string color_fragShader = \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    "   if(color_pixel.a > 0.1) {"
+    "   if(color_pixel.a > 0.9) {"
     "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);} else {gl_FragDepth = 1.0;}" \
     "   gl_FragColor = gl_Color * color_pixel; " \
     "}";
@@ -65,11 +65,11 @@ const std::string depth_fragShader = \
     "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
     "   float height_pixel = 0.0; "
     "   if(useDepthMap == true){"
-    "        vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
+    "       vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    "   if(color_pixel.a > 0.1) {"
+    "   if(color_pixel.a > 0.9) {"
     "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);} else {gl_FragDepth = 1.0;}" \
     "   gl_FragColor.r = gl_FragDepth;" \
     "   gl_FragColor.g = (gl_FragDepth - 256.0 * floor(gl_FragDepth / 256.0))*256.0;" \
@@ -99,7 +99,7 @@ const std::string normal_fragShader = \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    "   if(color_pixel.a > 0.1) {"
+    "   if(color_pixel.a > 0.9) {"
     "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);} else {gl_FragDepth = 1.0;}" \
     "   gl_FragColor.rgb = 0.5 + direction * 0.5;" \
     "   gl_FragColor.a = color_alpha;" \
@@ -115,7 +115,7 @@ const std::string lighting_fragShader = \
     "uniform vec4 ambient_light;" \
     "uniform int nbr_lights;" \
     "uniform vec2 screen_ratio;" \
-    "uniform vec2 view_decal;" \
+    "uniform vec2 view_shift;" \
     "varying vec3 vertex; "\
     "void main()" \
     "{" \
@@ -124,7 +124,7 @@ const std::string lighting_fragShader = \
     "   vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
     "   vec3 direction = -1.0 + 2.0 * texture2D(normal_map, gl_TexCoord[0].xy).rgb;"
     "   float height_pixel = (0.5 - (depth_pixel.r+depth_pixel.g / 256.0+depth_pixel.b / 65536.0)) * 1000.0;"
-	"   vec3 frag_pos = vertex + vec3(view_decal.xy,0);"
+	"   vec3 frag_pos = vertex + vec3(view_shift.xy, 0);"
 	"   frag_pos.y -= height_pixel;"
 	"   frag_pos.z = height_pixel;"
     "   gl_FragColor = gl_Color * ambient_light * color_pixel; "
@@ -304,10 +304,13 @@ struct RenderSystem {
     void update(EntityManager& entity_manager, sf::RenderWindow& window) {
         window.clear();
 
-        int nbr_lights = light_system.update(entity_manager);
-        m_lightingShader.setUniform("nbr_lights",(int)nbr_lights);
-
         sf::View current_view = window.getView();
+        sf::Vector2f view_shift = current_view.getCenter();
+        view_shift -= sf::Vector2f(current_view.getSize().x / 2, current_view.getSize().y / 2);
+        m_lightingShader.setUniform("view_shift",view_shift);
+
+        int nbr_lights = light_system.update(entity_manager, view_shift);
+        m_lightingShader.setUniform("nbr_lights",(int)nbr_lights);
 
         m_colorScreen.setActive(true);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -336,20 +339,13 @@ struct RenderSystem {
         entity_manager.foreach<RenderSystem_c, RenderSystem_t>
         ([&](Entity& entity, RenderComponent& render, PhysicsComponent& physics)
         {
-            sf::Transform totalTransform;
-            totalTransform = sf::Transform::Identity;
-
-            sf::Vector2i position = window.mapCoordsToPixel(sf::Vector2f(physics.x, physics.y - physics.z));
-            render.setPosition(physics.x, physics.y - physics.z);
+            render.setPosition(physics.position(view_shift).x, physics.position(view_shift).y);
             render.setScale(sf::Vector2f(render.scale, render.scale));
 
             sf::RenderStates state;
-            state.transform = totalTransform;
+            state.transform = sf::Transform::Identity;
 
             m_colorScreen.setActive(true);
-                if(render.is_selected) {
-                    _debug_render_lines(render, m_colorScreen);
-                }
                 m_colorShader.setUniform("z_position",physics.z);
                 render.prepare_shader(&m_colorShader);
                 state.shader = &m_colorShader;
@@ -369,26 +365,29 @@ struct RenderSystem {
                 state.shader = &m_depthShader;
                 m_depthScreen.draw(render, state);
             m_depthScreen.setActive(false);
+
+            if(render.is_selected) {
+                _debug_render_lines(render, m_colorScreen);
+            }
         
         });
-
-#ifdef DEBUG_IMGUI
-        ImGui::SFML::Render(m_colorScreen);
-#endif
 
         m_colorScreen.display();
         m_depthScreen.display();
         m_normalScreen.display();
 
-        sf::Vector2f decal = current_view.getCenter();
-        decal -= sf::Vector2f(current_view.getSize().x / 2, current_view.getSize().y / 2);
-        m_lightingShader.setUniform("view_decal",decal);
+        #ifdef DEBUG_IMGUI
+                ImGui::SFML::Render(m_colorScreen);
+        #endif
 
         if(m_enableSSAO)
         {
             m_SSAOScreen.draw(m_SSAOrenderer,&m_SSAOShader);
             m_SSAOScreen.display();
         }
+
+        m_rendererStates.transform = sf::Transform::Identity;
+        m_rendererStates.transform.translate(view_shift.x, view_shift.y);
 
         window.draw(m_renderer, m_rendererStates);
     }

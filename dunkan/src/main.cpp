@@ -51,8 +51,8 @@ bool game_entities(EntityManager& entity_manager) {
         .light_type = LightType::Directional,
         .diffuse_color = sf::Color(255,255,224),
         .specular_color = sf::Color::White,
-        .direction = sf::Vector3f(-1,.5,-1),
-        .intensity = 5.0f
+        .direction = sf::Vector3f(-1,.5,0),
+        .intensity = 60.0f
     });
 
     // Spotlight
@@ -66,7 +66,7 @@ bool game_entities(EntityManager& entity_manager) {
         .light_type = LightType::Spot,
         .diffuse_color = sf::Color::Red,
         .specular_color = sf::Color::White,
-        .direction = sf::Vector3f(0, -1.0, 0),
+        .direction = sf::Vector3f(0, 1.0, 0),
         .radius = 3.f,
         .intensity = 10.f
     });
@@ -81,6 +81,7 @@ bool game_entities(EntityManager& entity_manager) {
     render3.set_texture("data/cliff_albedo.png");
     render3.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
     render3.height = 10;
+    render3.moveable = false;
 
     Entity& entity6 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity6, PhysicsComponent{
@@ -92,6 +93,7 @@ bool game_entities(EntityManager& entity_manager) {
     render4.set_texture("data/cliff_albedo.png");
     render4.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
     render4.height = 10;
+    render4.moveable = false;
 
     return true;
 }
@@ -155,7 +157,7 @@ void update(sf::RenderWindow& window) {
 #endif
 
             camera_system.update(window, dt.asSeconds());
-            physics_system.update(entity_manager, dt.asSeconds());
+            physics_system.update(entity_manager, window.getView(), dt.asSeconds());
             render_system.update(entity_manager, window);
 
             window.display();
