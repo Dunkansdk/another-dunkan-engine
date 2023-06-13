@@ -120,14 +120,14 @@ bool game_entities(EntityManager& entity_manager) {
 
     Entity& entity6 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity6, PhysicsComponent{
-            .x = 140.f,
-            .y = 180.f,
+            .x = 300.f,
+            .y = 300.f,
             .z = -.65f
         });
     entity_manager.add_component<RenderComponent>(entity6, RenderComponent{
             texture_manager.get("Torus-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Torus-Albedo").getSize().x, texture_manager.get("Torus-Albedo").getSize().y),
-            460.f,
+            40.f,
             1.f,
             texture_manager.get("Torus-Normal"), 
             texture_manager.get("Torus-Depth"), 
