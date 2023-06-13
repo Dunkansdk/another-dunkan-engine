@@ -27,90 +27,112 @@ bool game_entities(EntityManager& entity_manager) {
     texture_manager.load(std::string("Tree-Albedo"), std::string("data/tree_albedo.png"));
     texture_manager.load(std::string("Tree-Depth"), std::string("data/tree_height.png"));
     texture_manager.load(std::string("Tree-Normal"), std::string("data/tree_normal.png"));
+    texture_manager.load(std::string("Tree-Material"), std::string("data/tree_material.png"));
+
+    texture_manager.load(std::string("Torus-Albedo"), std::string("data/torus_albedo.png"));
+    texture_manager.load(std::string("Torus-Depth"), std::string("data/torus_height.png"));
+    texture_manager.load(std::string("Torus-Normal"), std::string("data/torus_normal.png"));
+    texture_manager.load(std::string("Torus-Material"), std::string("data/torus_material.png"));
+
+    texture_manager.load(std::string("Wetsand-Albedo"), std::string("data/wetsand_albedo.png"));
+    texture_manager.load(std::string("Wetsand-Depth"), std::string("data/wetsand_height.png"));
+    texture_manager.load(std::string("Wetsand-Normal"), std::string("data/wetsand_normal.png"));
+    texture_manager.load(std::string("Wetsand-Material"), std::string("data/wetsand_normal.png"));
 
     Entity& entity1 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{
-        .x = 350.f,
-        .y = 10.f,
-        .z = .5f
-    });
-    RenderComponent& render = entity_manager.add_component<RenderComponent>(entity1, 
-        RenderComponent{
+            .x = 350.f,
+            .y = 10.f,
+            .z = .5f
+        });
+    entity_manager.add_component<RenderComponent>(entity1, RenderComponent{
+            texture_manager.get("Abbey-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Abbey-Albedo").getSize().x, texture_manager.get("Abbey-Albedo").getSize().y),
+            460.f,
+            1.f,
             texture_manager.get("Abbey-Normal"), 
             texture_manager.get("Abbey-Depth")
-        });
-    render.set_texture("data/abbey_albedo.png");
-    // render.set_3D_textures("data/abbey_height.png", "data/abbey_normal.png");
-    render.height = 460;
+        }).load();
 
     Entity& entity2 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{
-        .x = 140.f,
-        .y = 180.f,
-        .z = -.65f
-    });
-    RenderComponent& render2 = entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
-            texture_manager.get("Tree-Normal"), 
-            texture_manager.get("Tree-Depth")
+            .x = 140.f,
+            .y = 180.f,
+            .z = -.65f
         });
-    render2.set_texture("data/tree_albedo.png");
-    // render2.set_3D_textures("data/tree_height.png", "data/tree_normal.png");
-    render2.height = 300;
+    entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
+            texture_manager.get("Tree-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Tree-Albedo").getSize().x, texture_manager.get("Tree-Albedo").getSize().y),
+            300.f,
+            1.f,
+            texture_manager.get("Tree-Normal"), 
+            texture_manager.get("Tree-Depth"), 
+            texture_manager.get("Tree-Material")
+        }).load();
 
     // Sunlight
     Entity& entity3 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity3, PhysicsComponent{
-        .x = 900.f,
-        .y = 900.f,
-        .z = .5f
-    });
+            .x = 900.f,
+            .y = 900.f,
+            .z = .5f
+        });
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
-        .light_type = LightType::Directional,
-        .diffuse_color = sf::Color(255,255,224),
-        .specular_color = sf::Color::White,
-        .direction = sf::Vector3f(-1,.5,0),
-        .intensity = 60.0f
-    });
+            .light_type = LightType::Directional,
+            .diffuse_color = sf::Color(255,255,224),
+            .specular_color = sf::Color::White,
+            .direction = sf::Vector3f(-1,.5,0),
+            .intensity = 60.0f
+        });
 
     // Spotlight
     Entity& entity4 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
-        .x = 500.f,
-        .y = 200.f,
-        .z = 3.f
-    });
+            .x = 500.f,
+            .y = 200.f,
+            .z = 3.f
+        });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
-        .light_type = LightType::Spot,
-        .diffuse_color = sf::Color::Red,
-        .specular_color = sf::Color::White,
-        .direction = sf::Vector3f(0, 1.0, 0),
-        .radius = 3.f,
-        .intensity = 10.f
-    });
+            .light_type = LightType::Spot,
+            .diffuse_color = sf::Color::Red,
+            .specular_color = sf::Color::White,
+            .direction = sf::Vector3f(0, 1.0, 0),
+            .radius = 3.f,
+            .intensity = 10.f
+        });
 
-    // Entity& entity5 = entity_manager.create_entity();
-    // entity_manager.add_component<PhysicsComponent>(entity5, PhysicsComponent{
-    //     .x = 16.f,
-    //     .y = 16.f,
-    //     .z = .5f
-    // });
-    // RenderComponent& render3 = entity_manager.add_component<RenderComponent>(entity5, RenderComponent{});
-    // render3.set_texture("data/cliff_albedo.png");
-    // render3.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
-    // render3.height = 10;
-    // render3.moveable = false;
+    Entity& entity5 = entity_manager.create_entity();
+    entity_manager.add_component<PhysicsComponent>(entity5, PhysicsComponent{
+            .x = 0.f,
+            .y = 0.f,
+            .z = .5f
+        });
+    entity_manager.add_component<RenderComponent>(entity5, RenderComponent{
+            texture_manager.get("Wetsand-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 4, texture_manager.get("Wetsand-Albedo").getSize().y * 4),
+            10.f,
+            1.f,
+            texture_manager.get("Wetsand-Normal"), 
+            texture_manager.get("Wetsand-Depth"),
+            texture_manager.get("Wetsand-Material"),
+            false
+        }).load();
 
-    // Entity& entity6 = entity_manager.create_entity();
-    // entity_manager.add_component<PhysicsComponent>(entity6, PhysicsComponent{
-    //     .x = 1040.f,
-    //     .y = 16.f,
-    //     .z = .5f
-    // });
-    // RenderComponent& render4 = entity_manager.add_component<RenderComponent>(entity6, RenderComponent{});
-    // render4.set_texture("data/cliff_albedo.png");
-    // render4.set_3D_textures("data/cliff_height.png", "data/cliff_normal.png");
-    // render4.height = 10;
-    // render4.moveable = false;
+    Entity& entity6 = entity_manager.create_entity();
+    entity_manager.add_component<PhysicsComponent>(entity6, PhysicsComponent{
+            .x = 140.f,
+            .y = 180.f,
+            .z = -.65f
+        });
+    entity_manager.add_component<RenderComponent>(entity6, RenderComponent{
+            texture_manager.get("Torus-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Torus-Albedo").getSize().x, texture_manager.get("Torus-Albedo").getSize().y),
+            460.f,
+            1.f,
+            texture_manager.get("Torus-Normal"), 
+            texture_manager.get("Torus-Depth"), 
+            texture_manager.get("Torus-Material")
+        }).load();
 
     return true;
 }
@@ -146,11 +168,16 @@ void update(sf::RenderWindow& window) {
         {
             sf::Time dt = clock.restart();
 
-            
             while (window.pollEvent(event)) 
             {
                 if (event.type == sf::Event::Closed) {
                     window.close();
+                }
+
+                if (event.type == sf::Event::Resized)
+                {
+                    sf::FloatRect visibleArea(0.f, 0.f, event.size.width, event.size.height);
+                    window.setView(sf::View(visibleArea));
                 }
 
 #ifdef DEBUG_IMGUI
@@ -173,6 +200,8 @@ void update(sf::RenderWindow& window) {
             debug_system.update(entity_manager);
 #endif
 
+            // ImGui::ShowDemoWindow();
+
             camera_system.update(window, dt.asSeconds());
             physics_system.update(entity_manager, window.getView(), dt.asSeconds());
             render_system.update(entity_manager, window);
@@ -189,6 +218,7 @@ void update(sf::RenderWindow& window) {
             ++m_frame;
         }
 
+        ImGui::SFML::Shutdown();
         render_system.destroy();
         window.close();
 

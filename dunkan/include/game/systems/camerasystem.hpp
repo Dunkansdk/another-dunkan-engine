@@ -12,6 +12,8 @@ struct CameraSystem {
 
     void update(sf::RenderWindow& window, float delta) {
 
+
+
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
             movement.x -= 500;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))
@@ -21,11 +23,10 @@ struct CameraSystem {
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::S))
             movement.y += 500;
 
-        sf::View view = window.getView();
-        view.move(movement * delta);
-        window.setView(view);
-
-        movement = {0.f, 0.f};
+            sf::View view = window.getView();
+            view.move(movement * delta);
+            window.setView(view);
+            movement = {0.f, 0.f};
 
     }
 

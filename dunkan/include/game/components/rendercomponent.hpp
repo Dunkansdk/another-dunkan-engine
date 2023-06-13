@@ -9,43 +9,55 @@
 #include <imgui.h>
 #include <imgui-SFML.h>
 
+#define GL_SILENCE_DEPRECATION
+
 struct RenderComponent : public sf::Sprite {
 
     RenderComponent() : sf::Sprite() {}
 
-    RenderComponent(sf::Texture& normal, sf::Texture& depth) : sf::Sprite() {
-        m_normal = normal;
-        m_depth = depth;
+    RenderComponent(sf::Texture& albedo, const sf::IntRect &rectangle, float height, float scale) 
+        : sf::Sprite(albedo, rectangle)
+    {
+        m_texture = albedo;
+        std::cout << "Asset Manager Reference:\nAlbedoID: " << &albedo << "\nTextureID: " << &m_texture << "\n";
+        m_texture.setSmooth(true);
+        m_texture.setRepeated(true);
+        this->height = height;
+        this->scale = scale;
     }
 
-    void set_texture(std::string filename)
+    RenderComponent(sf::Texture& albedo, const sf::IntRect &rectangle, float height, float scale, sf::Texture& normal, sf::Texture& depth) 
+        : sf::Sprite(albedo, rectangle)
     {
-        if(m_texture.loadFromFile(filename)) {
-            std::cout << m_texture.getSize().x << std::endl;
-            sf::Sprite::setTextureRect(sf::IntRect(0, 0, m_texture.getSize().x, m_texture.getSize().y));
-            this->height = 10.f;
-            sf::Sprite::setTexture(m_texture);
-            sf::Sprite::setScale(sf::Vector2f(1.0f, 1.0f));
-            m_texture.setSmooth(true);
-            m_texture.setRepeated(true);
-            this->scale = 1.0f;
-        }
+        new (this) RenderComponent(albedo, rectangle, height, scale);
+        m_normal = normal; 
+        m_normal.setSmooth(true);
+        m_normal.setRepeated(true);
+        m_depth = depth; 
+        m_depth.setSmooth(true);
+        m_depth.setRepeated(true);
     }
 
-    void set_3D_textures(std::string depth, std::string normal)
+    RenderComponent(sf::Texture& albedo, const sf::IntRect &rectangle, float height, float scale,  sf::Texture& normal, sf::Texture& depth, sf::Texture& material) 
+        : sf::Sprite(albedo, rectangle)
     {
-        if(!m_depth.loadFromFile(depth)) {
-            std::cout << "Error loading the depth map\n";
-        } else {
-            m_depth.setSmooth(true);
-            m_depth.setRepeated(true);
-        }
-        if(!m_normal.loadFromFile(normal)) {
-            std::cout << "Error loading the depth map\n";
-        } else {
-            m_normal.setSmooth(true);
-            m_normal.setRepeated(true);
-        }
+        new (this) RenderComponent(albedo, rectangle, height, scale, normal, depth);
+        m_material = material; 
+        m_material.setSmooth(true);
+        m_material.setRepeated(true);
+    }
+
+    RenderComponent(sf::Texture& albedo, const sf::IntRect &rectangle, float height, float scale,  sf::Texture& normal, sf::Texture& depth, sf::Texture& material, bool moveable) 
+        : sf::Sprite(albedo, rectangle)
+    {
+        new (this) RenderComponent(albedo, rectangle, height, scale, normal, depth, material);
+        this->moveable = moveable;
+    }
+
+    RenderComponent& load() {
+        sf::Sprite::setTexture(m_texture);
+        sf::Sprite::setScale(sf::Vector2f(scale, scale));
+        return *(this);
     }
 
     sf::Texture& get_texture() {
@@ -68,17 +80,19 @@ struct RenderComponent : public sf::Sprite {
             shader->setUniform("useDepthMap", true);
             shader->setUniform("normal_map", m_normal);
             shader->setUniform("useNormalMap", true);
-            shader->setUniform("height", ((float)height*(float)getScale().x));
+            shader->setUniform("height", ((float)height * (float)getScale().x));
         }
     }
 
-    float height;
-    float scale;
+    float height {10.0f};
+    float scale {1.0f};
     bool is_selected{false};
     bool moveable{true};
+    
     sf::Texture m_texture;
     sf::Texture m_depth;
     sf::Texture m_normal;
+    sf::Texture m_material;
 
 };
 
