@@ -56,7 +56,6 @@ struct LightSystem {
             gl_direction[1] = position.y;
             gl_direction[2] = position.z;
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_SPOT_DIRECTION, gl_direction);
-            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_SPOT_EXPONENT, 3.0f);
             
             ++m_current_nbr_light;
         });

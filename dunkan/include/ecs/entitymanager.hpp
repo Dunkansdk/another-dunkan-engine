@@ -2,8 +2,8 @@
 
 #include <chrono>
 #include <vector>
-#include "engine/components/componentstorage.hpp"
-#include "engine/utils/typelist.hpp"
+#include "ecs/components/componentstorage.hpp"
+#include "ecs/utils/typelist.hpp"
 
 namespace ADE {
 

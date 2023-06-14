@@ -109,7 +109,7 @@ bool game_entities(EntityManager& entity_manager) {
         });
     entity_manager.add_component<RenderComponent>(entity5, RenderComponent{
             texture_manager.get("Wetsand-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 4, texture_manager.get("Wetsand-Albedo").getSize().y * 4),
+            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 3, texture_manager.get("Wetsand-Albedo").getSize().y * 4),
             10.f,
             1.f,
             texture_manager.get("Wetsand-Normal"), 
@@ -132,6 +132,22 @@ bool game_entities(EntityManager& entity_manager) {
             texture_manager.get("Torus-Normal"), 
             texture_manager.get("Torus-Depth"), 
             texture_manager.get("Torus-Material")
+        }).load();
+
+    Entity& entity7 = entity_manager.create_entity();
+    entity_manager.add_component<PhysicsComponent>(entity7, PhysicsComponent{
+            .x = 540.f,
+            .y = 580.f,
+            .z = -.65f
+        });
+    entity_manager.add_component<RenderComponent>(entity7, RenderComponent{
+            texture_manager.get("Tree-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Tree-Albedo").getSize().x, texture_manager.get("Tree-Albedo").getSize().y),
+            300.f,
+            1.f,
+            texture_manager.get("Tree-Normal"), 
+            texture_manager.get("Tree-Depth"), 
+            texture_manager.get("Tree-Material")
         }).load();
 
     return true;
@@ -176,9 +192,18 @@ void update(sf::RenderWindow& window) {
 
                 if (event.type == sf::Event::Resized)
                 {
-                    sf::FloatRect visibleArea(0.f, 0.f, event.size.width, event.size.height);
-                    window.setView(sf::View(visibleArea));
+                    sf::FloatRect visible_area(0.f, 0.f, event.size.width, event.size.height);
+                    window.setView(sf::View(visible_area));
                 }
+
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
+                        render_system.debug_screen = 0;
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+                        render_system.debug_screen = 1;
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
+                        render_system.debug_screen = 2;
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::V))
+                        render_system.debug_screen = 3;
 
 #ifdef DEBUG_IMGUI
                 ImGui::SFML::ProcessEvent(window, event);
@@ -192,15 +217,12 @@ void update(sf::RenderWindow& window) {
             ImGui::Begin("Hello, world!");
             ImGui::Text("FPS: %f", (float)m_fps);
             ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
-            ImGui::Checkbox("Heightmaps", &render_system.debug_heightmap);
             if (ImGui::Button("SSAO")) {
                 render_system.SSAO_option(!render_system.m_enableSSAO);
             }
             ImGui::End();
             debug_system.update(entity_manager);
 #endif
-
-            // ImGui::ShowDemoWindow();
 
             camera_system.update(window, dt.asSeconds());
             physics_system.update(entity_manager, window.getView(), dt.asSeconds());

@@ -30,8 +30,8 @@ struct MoveEntitySystem {
                     if(!render.is_selected) render.is_selected = true;
 
                     // Move entity
-                    physics.x = x - (render.m_texture.getSize().x / 2);
-                    physics.y = y - (render.m_texture.getSize().y / 2);
+                    physics.x = x - (render.m_texture->getSize().x / 2);
+                    physics.y = y - (render.m_texture->getSize().y / 2);
 
                     // Zoom event
                     if(event.type == sf::Event::MouseWheelScrolled) {
@@ -67,7 +67,6 @@ struct MoveEntitySystem {
 
         if(event.type == sf::Event::MouseButtonReleased) {
             selected = {0, 0};
-            // std::cout << "########### Cleanup Selected Entity\n";
         }
     }
 
@@ -78,10 +77,6 @@ private:
         float x_center = (render.getGlobalBounds().left + render.getGlobalBounds().width / 2);
         float y_center = (render.getGlobalBounds().top + render.getGlobalBounds().height / 2) ;
         float distance = std::sqrt((x - x_center) * (x - x_center) + (y - y_center) * (y - y_center));
-        std::cout << "######## Entity: " << entity.get_id() << "\n";
-        std::cout << "x_center: " << (x - x_center) * (x - x_center) << "\n";
-        std::cout << "y_center: " << (y - y_center) * (y - y_center) << "\n";
-        std::cout << "Distance Setter: " << distance << "\n";
         return SelectedEntity{(std::size_t)entity.get_id(), distance};
     }
 

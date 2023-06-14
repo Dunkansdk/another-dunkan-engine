@@ -117,6 +117,7 @@ const std::string lighting_fragShader = \
     "uniform vec2 screen_ratio;" \
     "uniform vec2 view_shift;" \
     "varying vec3 vertex; "\
+    "uniform int debug_screen; "\
     "void main()" \
     "{" \
     "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
@@ -162,6 +163,11 @@ const std::string lighting_fragShader = \
 	"                       ) / 16.0;"
     "       gl_FragColor.rgb *= occlusion;"
 	"   };"
+    "   if(debug_screen == 1) { gl_FragColor.rgb = color_pixel.rgb; }"
+    "   if(debug_screen == 2) { gl_FragColor.rgb = normal_pixel.rgb; }"
+    "   if(debug_screen == 3) {"
+    "       gl_FragColor.rgb = vec3(height_pixel * 0.001, height_pixel * 0.001, height_pixel * 0.001);" \
+    "   }"
     "}";
 
 const std::string SSAO_fragShader = \
@@ -203,8 +209,14 @@ const std::string SSAO_fragShader = \
 struct RenderSystem {
 
     bool m_enableSSAO{true};
-    bool m_useSecondScreen{false};
-    bool debug_heightmap{false};
+    /**
+     * Debug Screen:
+     * 0 - Full
+     * 1 - Albedo
+     * 2 - Normal
+     * 3 - Depth
+     **/
+    int debug_screen{0};
 
     void init_renderer(sf::RenderWindow& window) {
         bool r = true;
@@ -221,17 +233,14 @@ struct RenderSystem {
             r = false;
         
         m_colorShader.loadFromMemory(color_fragShader,sf::Shader::Fragment);
-        std::cout << "Loaded m_colorShader" << "\n";
         m_depthShader.loadFromMemory(depth_fragShader,sf::Shader::Fragment);
-        std::cout << "Loaded m_depthShader" << "\n";
         m_normalShader.loadFromMemory(normal_fragShader,sf::Shader::Fragment);
         m_normalShader.setUniform("useNormalMap",true);
-        std::cout << "Loaded m_normalShader" << "\n";
         m_SSAOShader.loadFromMemory(vertexShader,SSAO_fragShader);
-        std::cout << "Loaded m_SSAOShader" << "\n";
         m_lightingShader.loadFromMemory(vertexShader,lighting_fragShader);
         m_lightingShader.setUniform("ambient_light", sf::Glsl::Vec4(sf::Color{ 180, 180, 180, 255 }));
-        std::cout << "Loaded m_lightingShader" << "\n";
+        
+        ImGui::SFML::Init(window, m_colorScreen, true);
 
         m_colorScreen.setActive(true);
             m_colorScreen.setSmooth(true);
@@ -302,7 +311,10 @@ struct RenderSystem {
     sf::Shader* tmp_shader = nullptr;
 
     void update(EntityManager& entity_manager, sf::RenderWindow& window) {
+
         window.clear();
+
+        m_lightingShader.setUniform("debug_screen", debug_screen);
 
         sf::View current_view = window.getView();
         sf::Vector2f view_shift = current_view.getCenter();
@@ -373,7 +385,7 @@ struct RenderSystem {
         });
 
         #ifdef DEBUG_IMGUI
-        ImGui::SFML::Render(m_colorScreen);
+            ImGui::SFML::Render(m_colorScreen);
         #endif
 
         m_colorScreen.display();
@@ -390,6 +402,7 @@ struct RenderSystem {
         m_rendererStates.transform.translate(view_shift.x, view_shift.y);
 
         window.draw(m_renderer, m_rendererStates);
+
     }
 
     void destroy() {

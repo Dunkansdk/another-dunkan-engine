@@ -11,9 +11,7 @@ using CameraSystem_t = ADE::META_TYPES::Typelist<>;
 struct CameraSystem {
 
     void update(sf::RenderWindow& window, float delta) {
-
-
-
+        
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::A))
             movement.x -= 500;
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::D))

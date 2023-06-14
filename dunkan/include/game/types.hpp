@@ -1,5 +1,5 @@
-#include "engine/entitymanager.hpp"
-#include "engine/utils/typelist.hpp"
+#include "ecs/entitymanager.hpp"
+#include "ecs/utils/typelist.hpp"
 #include "game/components/physicscomponent.hpp"
 #include "game/components/rendercomponent.hpp"
 #include "game/components/cameracomponent.hpp"

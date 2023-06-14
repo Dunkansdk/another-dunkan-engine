@@ -3,9 +3,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <tuple>
-#include "engine/utils/slotmap.hpp"
-#include "engine/utils/typelist.hpp"
-#include "engine/components/traits.hpp"
+#include "ecs/utils/slotmap.hpp"
+#include "ecs/utils/typelist.hpp"
+#include "ecs/components/traits.hpp"
 
 namespace ADE {
 
