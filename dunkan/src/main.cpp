@@ -47,7 +47,7 @@ bool game_entities(EntityManager& entity_manager) {
             .z = .5f
         });
     entity_manager.add_component<ShadowComponent>(entity1, ShadowComponent{
-            ShadowCastingType::DIRECTIONNAL
+            ShadowCastingType::ALL_SHADOWS
         });
     entity_manager.add_component<RenderComponent>(entity1, RenderComponent{
             texture_manager.get("Abbey-Albedo"), 
@@ -65,7 +65,7 @@ bool game_entities(EntityManager& entity_manager) {
             .z = -.65f
         });
     entity_manager.add_component<ShadowComponent>(entity2, ShadowComponent{
-           ShadowCastingType::DIRECTIONNAL
+           ShadowCastingType::ALL_SHADOWS
         });
     entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
             texture_manager.get("Tree-Albedo"), 
@@ -85,11 +85,8 @@ bool game_entities(EntityManager& entity_manager) {
             .z = .5f
         });
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
-            .light_type = LightType::DIRECTIONAL,
-            .diffuse_color = sf::Color(255,255,224),
-            .specular_color = sf::Color::White,
-            .direction = sf::Vector3f(-1,.5,0),
-            .intensity = 60.0f
+            LightType::DIRECTIONAL, sf::Color(255,255,224), sf::Color::White,
+            sf::Vector3f(-1,.5,0), 50.f, 60.f, true
         });
 
     // Spotlight
@@ -100,12 +97,8 @@ bool game_entities(EntityManager& entity_manager) {
             .z = 3.f
         });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
-            .light_type = LightType::SPOT,
-            .diffuse_color = sf::Color::Red,
-            .specular_color = sf::Color::White,
-            .direction = sf::Vector3f(0, 1.0, 0),
-            .radius = 3.f,
-            .intensity = 10.f
+            LightType::SPOT, sf::Color::Red, sf::Color::White,
+            sf::Vector3f(0, 1.0, 0), 1.f, 2.f, true
         });
 
     Entity& entity5 = entity_manager.create_entity();

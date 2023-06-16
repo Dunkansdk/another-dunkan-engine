@@ -18,7 +18,9 @@ struct ShadowComponent {
     }
     
     ShadowCastingType shadow_type{};
+    
     std::map<LightComponent*, sf::Texture>  m_shadow_map{};
     std::map<LightComponent*, sf::Sprite>   m_shadow_sprite{};
+    std::map<LightComponent* ,sf::IntRect>  m_shadow_max_shift{};
 
 };  

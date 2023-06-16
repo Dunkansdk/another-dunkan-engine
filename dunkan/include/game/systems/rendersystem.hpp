@@ -117,7 +117,32 @@ const std::string lighting_fragShader = \
     "uniform vec2 screen_ratio;" \
     "uniform vec2 view_shift;" \
     "varying vec3 vertex; "\
+    "uniform int shadow_caster[8];"
+    "uniform sampler2D shadow_map_0;" \
+    "uniform sampler2D shadow_map_1;" \
+    "uniform sampler2D shadow_map_2;" \
+    "uniform sampler2D shadow_map_3;" \
+    "uniform sampler2D shadow_map_4;" \
+    "uniform sampler2D shadow_map_5;" \
+    "uniform sampler2D shadow_map_6;" \
+    "uniform sampler2D shadow_map_7;" \
+    "uniform vec2 shadow_shift[8];"
+    "uniform vec2 shadow_ratio[8];"
     "uniform int debug_screen; "\
+    ""
+    "float GetShadowCastValue(int curShadowMap, float heightPixel, vec2 shadowPos) {"
+    "   vec4 shadowPixel;"
+    "   vec2 mapPos = (shadowPos - shadow_shift[curShadowMap]) * shadow_ratio[curShadowMap];"
+    "   if(mapPos.x > 1.0) mapPos.x = 1.0;"
+    "   if(mapPos.y > 1.0) mapPos.y = 1.0;"
+    "   if(mapPos.x < 0.0) mapPos.x = 0.0;"
+    "   if(mapPos.y < 0.0)  return 0.0;"
+	"   if(curShadowMap == 0)"
+	"       shadowPixel = texture2D(shadow_map_0, mapPos);"
+	"   float shadowHeight = (0.5-(shadowPixel.r + shadowPixel.g / 256.0 + shadowPixel.b/65536.0)) * 1000.0;"
+    "   return 1.0 - min(1.0, max(0.0, (shadowHeight - heightPixel - 5.0) * 0.05));"
+    "}"
+    ""
     "void main()" \
     "{" \
     "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
@@ -129,6 +154,7 @@ const std::string lighting_fragShader = \
 	"   frag_pos.y -= height_pixel;"
 	"   frag_pos.z = height_pixel;"
     "   gl_FragColor = gl_Color * ambient_light * color_pixel; "
+    "   int curShadowMap = 0;"
     "   for(int i = 0 ; i < nbr_lights ; ++i)" \
 	"   {" \
 	"	    float lighting = 0.0;" \
@@ -146,7 +172,28 @@ const std::string lighting_fragShader = \
 	"	    							  dist*gl_LightSource[i].linearAttenuation +" \
 	"	    							  dist*dist*gl_LightSource[i].quadraticAttenuation);" \
 	"	    }" \
-	"       lighting *= max(0.0, dot(direction,normalize(light_direction)));"
+    "       light_direction = normalize(light_direction);"
+	"       if(curShadowMap < 8 && shadow_caster[curShadowMap] == i) {"
+	"           if(gl_LightSource[i].position.w == 0.0){"
+	"               vec2 shadowPos = gl_FragCoord.xy;"
+	"               shadowPos.y += height_pixel;"
+	"               vec3 v = vec3((height_pixel * light_direction.xy / light_direction.z), 0.0);"
+	"               shadowPos.x -= v.x;"
+	"               shadowPos.y += v.y;"
+	"               vec4 shadow_pixel= vec4(0.0, 0.0, 0.0, 0.0);"
+	"               lighting *= (GetShadowCastValue(curShadowMap,height_pixel,shadowPos)*4.0"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(3.0,0.0))*2.0"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(-3.0,0.0))*2.0"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(0.0,3.0))*2.0"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(0.0,-3.0))*2.0"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(2.0,2.0))"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(-2.0,2.0))"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(-2.0,-2.0))"
+    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(2.0,-2.0)))/16.0;"
+	"           }"
+	"           ++curShadowMap;"
+	"       }"
+	"       lighting *= max(0.0, dot(direction,light_direction));"
 	"	    lighting *= gl_LightSource[i].diffuse.a;" \
 	"	    gl_FragColor.rgb +=  gl_Color.rgb * color_pixel.rgb * gl_LightSource[i].diffuse.rgb * lighting;" \
 	"   }"
@@ -236,8 +283,8 @@ struct RenderSystem {
         m_depthShader.loadFromMemory(depth_fragShader,sf::Shader::Fragment);
         m_normalShader.loadFromMemory(normal_fragShader,sf::Shader::Fragment);
         m_SSAOShader.loadFromMemory(vertexShader,SSAO_fragShader);
-        m_lightingShader.loadFromMemory(vertexShader,lighting_fragShader);
-        m_lightingShader.setUniform("ambient_light", sf::Glsl::Vec4(sf::Color{ 180, 180, 180, 255 }));
+        light_system.m_lightingShader.loadFromMemory(vertexShader,lighting_fragShader);
+        light_system.m_lightingShader.setUniform("ambient_light", sf::Glsl::Vec4(sf::Color{ 180, 180, 180, 255 }));
         
         ImGui::SFML::Init(window, m_colorScreen, true);
 
@@ -255,15 +302,15 @@ struct RenderSystem {
 
         m_renderer.setSize(sf::Vector2f(window_size.x, window_size.y));
         m_renderer.setTextureRect(sf::IntRect(0,0,window_size.x * m_superSampling, window_size.y * m_superSampling));
-        m_renderer.setTexture(&m_normalScreen.getTexture());
+        m_renderer.setTexture(&m_colorScreen.getTexture());
 
-        m_lightingShader.setUniform("color_map",m_colorScreen.getTexture());
-        m_lightingShader.setUniform("normal_map",m_normalScreen.getTexture());
-        m_lightingShader.setUniform("depth_map",m_depthScreen.getTexture());
-        m_lightingShader.setUniform("screen_ratio",sf::Vector2f(1.0 / (float)m_colorScreen.getSize().x,
+        light_system.m_lightingShader.setUniform("color_map",m_colorScreen.getTexture());
+        light_system.m_lightingShader.setUniform("normal_map",m_normalScreen.getTexture());
+        light_system.m_lightingShader.setUniform("depth_map",m_depthScreen.getTexture());
+        light_system.m_lightingShader.setUniform("screen_ratio",sf::Vector2f(1.0 / (float)m_colorScreen.getSize().x,
                                                                 1.0 / (float)m_colorScreen.getSize().y));
 
-        m_rendererStates.shader = &m_lightingShader;
+        m_rendererStates.shader = &light_system.m_lightingShader;
 
         SSAO_option(true);
 
@@ -313,15 +360,13 @@ struct RenderSystem {
 
         window.clear();
 
-        m_lightingShader.setUniform("debug_screen", debug_screen);
+        light_system.m_lightingShader.setUniform("debug_screen", debug_screen);
 
         sf::View current_view = window.getView();
         sf::Vector2f view_shift = current_view.getCenter();
         view_shift -= sf::Vector2f(current_view.getSize().x / 2, current_view.getSize().y / 2);
-        m_lightingShader.setUniform("view_shift",view_shift);
 
-        int nbr_lights = light_system.calculate_ligts(entity_manager, view_shift);
-        m_lightingShader.setUniform("nbr_lights",(int)nbr_lights);
+        light_system.calculate_ligts(entity_manager, view_shift, current_view, m_colorScreen.getSize());
 
         m_colorScreen.setActive(true);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -416,8 +461,8 @@ struct RenderSystem {
 
         if(m_enableSSAO)
         {
-            m_lightingShader.setUniform("useSSAO", true);
-            m_lightingShader.setUniform("SSAOMap", m_SSAOScreen.getTexture());
+            light_system.m_lightingShader.setUniform("useSSAO", true);
+            light_system.m_lightingShader.setUniform("SSAOMap", m_SSAOScreen.getTexture());
             m_SSAOShader.setUniform("normal_map", m_normalScreen.getTexture());
             m_SSAOShader.setUniform("depth_map", m_depthScreen.getTexture());
             m_SSAOShader.setUniform("screen_ratio", 
@@ -427,7 +472,7 @@ struct RenderSystem {
                                                 m_depthScreen.getSize().y));
             m_SSAOrenderer.setTexture(&m_colorScreen.getTexture());
         } else {
-            m_lightingShader.setUniform("useSSAO", false);
+            light_system.m_lightingShader.setUniform("useSSAO", false);
         }
     }
 
@@ -461,8 +506,7 @@ private:
 
     sf::Shader m_colorShader;
     sf::Shader m_normalShader;
-    sf::Shader m_depthShader;
-    sf::Shader m_lightingShader;  
+    sf::Shader m_depthShader;  
 
     int m_superSampling{1};
     sf::RenderTexture m_colorScreen;

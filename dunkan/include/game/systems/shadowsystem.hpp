@@ -1,5 +1,7 @@
 #pragma once
 
+#include <SFML/OpenGL.hpp>
+
 #include "game/types.hpp"
 
 using ShadowSystem_c = ADE::META_TYPES::Typelist<RenderComponent, ShadowComponent>;
@@ -7,118 +9,170 @@ using ShadowSystem_t = ADE::META_TYPES::Typelist<>;
 
 struct ShadowSystem {
 
-private:
-
-    sf::RenderTexture m_shadow_map{};
-
-    void void calculate(EntityManager& entity_manager, LightComponent* light) {
+    void calculate(EntityManager& entity_manager, LightComponent* light) {
 
         entity_manager.foreach<ShadowSystem_c, ShadowSystem_t>
         ([&](Entity&, RenderComponent& render, ShadowComponent& shadow)
         {
-            if(shadow.require)
-            if(light->light_type == LightType::DIRECTIONAL && 
-            (shadow.shadow_type == ShadowCastingType::DIRECTIONNAL || shadow.shadow_type == ShadowCastingType::ALL_SHADOWS)) 
-            {
-                sf::Texture* t_texture = render.m_texture; 
-                float height = render.height * render.getScale().y;
-                sf::Vector3f light_direction = light->direction;
-
-                sf::Vector2f shifting(
-                    -light_direction.x * height / light_direction.z,
-                    -light_direction.y * height / light_direction.z
-                );
-
-                sf::Vector2f max_shift = shifting;
-                max_shift.y -= height;
-                max_shift.x = (int)max_shift.x +((max_shift.x > 0) ? 1 : -1);
-                max_shift.y = (int)max_shift.y +((max_shift.y > 0) ? 1 : -1);
-
-                sf::IntRect shadow_bounds(
-                    0,
-                    0,
-                    render.getGlobalBounds().width ,
-                    render.getGlobalBounds().height
-                );
-
-                if(max_shift.x < 0)
-                    shadow_bounds.left = max_shift.x;
-                if(max_shift.y < 0)
-                    shadow_bounds.top = max_shift.y;
-
-
-                sf::Uint8 *shadow_map_array = new sf::Uint8[shadow_bounds.width * shadow_bounds.height * 4];
-
-                sf::Texture* depth_texture = render.m_depth;
-                sf::Image depth_img = depth_texture->copyToImage();
-                size_t depth_texture_width = depth_img.getSize().x;
-                const sf::Uint8* depth_array = depth_img.getPixelsPtr();
-
-                for(size_t t = 0 ; t < (size_t)(shadow_bounds.width * shadow_bounds.height) ; ++t)
+            if(light->require_shadow_computation()) {
+                if(light->light_type == LightType::DIRECTIONAL && 
+                (shadow.shadow_type == ShadowCastingType::DIRECTIONNAL || shadow.shadow_type == ShadowCastingType::ALL_SHADOWS)) 
                 {
-                    shadow_map_array[t*4] = 0;
-                    shadow_map_array[t*4+1] = 0;
-                    shadow_map_array[t*4+2] = 0;
-                    shadow_map_array[t*4+3] = 0;
-                }
+                    sf::Texture* t_texture = render.m_texture; 
+                    float height = render.height * render.getScale().y;
+                    sf::Vector3f light_direction = light->direction;
 
-                float height_pixel = 0;
-                sf::Vector2f proj_pos(0, 0);
+                    sf::Vector2f shifting(
+                        -light_direction.x * height / light_direction.z,
+                        -light_direction.y * height / light_direction.z
+                    );
 
-                for(size_t x = 0 ; x < depth_texture_width ; ++x)
-                for(size_t y = 0 ; y < depth_img.getSize().y ; ++y)
-                if(depth_array[(x + y * depth_texture_width) * 4 + 3] == 255)
-                {
-                    sf::Color color_pixel(depth_array[(x + y * depth_texture_width) * 4],
-                                        depth_array[(x + y * depth_texture_width) * 4 + 1],
-                                        depth_array[(x + y * depth_texture_width) * 4 + 2],
-                                        depth_array[(x + y * depth_texture_width) * 4 + 3]);
-                    height_pixel  = (color_pixel.r + color_pixel.g + color_pixel.b);
-                    height_pixel *= height * 0.00130718954f;
+                    sf::Vector2f max_shift = shifting;
+                    max_shift.y -= height;
+                    max_shift.x = (int)max_shift.x +((max_shift.x > 0) ? 1 : -1);
+                    max_shift.y = (int)max_shift.y +((max_shift.y > 0) ? 1 : -1);
 
-                    sf::Vector2f position(x, y);
-                    position.y -= height_pixel;
-                    position -= (sf::Vector2f(light_direction.x / light_direction.z,
-                                    light_direction.y/light_direction.z) * height_pixel);
+                    sf::IntRect shadow_bounds(
+                        0,
+                        0,
+                        render.getGlobalBounds().width ,
+                        render.getGlobalBounds().height
+                    );
 
-                    position.x = (int)(position.x + 0.5f) - shadow_bounds.left;
-                    position.y = (int)(position.y + 0.5f) - shadow_bounds.top;
+                    if(max_shift.x < 0)
+                        shadow_bounds.left = max_shift.x;
+                    if(max_shift.y < 0)
+                        shadow_bounds.top = max_shift.y;
 
-                    for(int dx = -1 ; dx <= 1 ; ++dx)
-                    for(int dy = -1 ; dy <= 1 ; ++dy)
+                    sf::IntRect shift = sf::IntRect(shadow_bounds.left,shadow_bounds.top,
+                                                  abs(max_shift.x), abs(max_shift.y));
+
+                    if(shift.left < m_shadow_max_shift.left)
+                        m_shadow_max_shift.left = shift.left;
+                    if(shift.top < m_shadow_max_shift.top)
+                        m_shadow_max_shift.top = shift.top;
+                    if(shift.width > m_shadow_max_shift.width)
+                        m_shadow_max_shift.width = shift.width;
+                    if(shift.height > m_shadow_max_shift.height)
+                        m_shadow_max_shift.height = shift.height;
+
+                    sf::Uint8 *shadow_map_array = new sf::Uint8[shadow_bounds.width * shadow_bounds.height * 4];
+
+                    sf::Texture* depth_texture = render.m_depth;
+                    sf::Image depth_img = depth_texture->copyToImage();
+                    size_t depth_texture_width = depth_img.getSize().x;
+                    const sf::Uint8* depth_array = depth_img.getPixelsPtr();
+
+                    for(size_t t = 0 ; t < (size_t)(shadow_bounds.width * shadow_bounds.height) ; ++t)
                     {
-                        int array_position = ((position.x + dx) + (position.y + dy) * shadow_bounds.width) * 4;
+                        shadow_map_array[t*4] = 0;
+                        shadow_map_array[t*4+1] = 0;
+                        shadow_map_array[t*4+2] = 0;
+                        shadow_map_array[t*4+3] = 0;
+                    }
 
-                        if(array_position >= 0 && array_position < shadow_bounds.width * shadow_bounds.height * 4)
-                        if(color_pixel.a*(color_pixel.r + color_pixel.g + color_pixel.b) >
-                        shadow_map_array[array_position + 3] * (shadow_map_array[array_position]
-                                                        + shadow_map_array[array_position + 1]
-                                                        + shadow_map_array[array_position + 2]))
+                    float height_pixel = 0;
+                    sf::Vector2f proj_pos(0, 0);
+
+                    for(size_t x = 0 ; x < depth_texture_width ; ++x)
+                    for(size_t y = 0 ; y < depth_img.getSize().y ; ++y)
+                    if(depth_array[(x + y * depth_texture_width) * 4 + 3] == 255)
+                    {
+                        sf::Color color_pixel(depth_array[(x + y * depth_texture_width) * 4],
+                                            depth_array[(x + y * depth_texture_width) * 4 + 1],
+                                            depth_array[(x + y * depth_texture_width) * 4 + 2],
+                                            depth_array[(x + y * depth_texture_width) * 4 + 3]);
+                        height_pixel  = (color_pixel.r + color_pixel.g + color_pixel.b);
+                        height_pixel *= height * 0.00130718954f;
+
+                        sf::Vector2f position(x, y);
+                        position.y -= height_pixel;
+                        position -= (sf::Vector2f(light_direction.x / light_direction.z,
+                                        light_direction.y/light_direction.z) * height_pixel);
+
+                        position.x = (int)(position.x + 0.5f) - shadow_bounds.left;
+                        position.y = (int)(position.y + 0.5f) - shadow_bounds.top;
+
+                        for(int dx = -1 ; dx <= 1 ; ++dx)
+                        for(int dy = -1 ; dy <= 1 ; ++dy)
                         {
-                            shadow_map_array[array_position]        = color_pixel.r;
-                            shadow_map_array[array_position + 1]    = color_pixel.g;
-                            shadow_map_array[array_position + 2]    = color_pixel.b;
-                            shadow_map_array[array_position + 3]    = color_pixel.a;
+                            int array_position = ((position.x + dx) + (position.y + dy) * shadow_bounds.width) * 4;
+
+                            if(array_position >= 0 && array_position < shadow_bounds.width * shadow_bounds.height * 4)
+                            if(color_pixel.a*(color_pixel.r + color_pixel.g + color_pixel.b) >
+                            shadow_map_array[array_position + 3] * (shadow_map_array[array_position]
+                                                            + shadow_map_array[array_position + 1]
+                                                            + shadow_map_array[array_position + 2]))
+                            {
+                                shadow_map_array[array_position]        = color_pixel.r;
+                                shadow_map_array[array_position + 1]    = color_pixel.g;
+                                shadow_map_array[array_position + 2]    = color_pixel.b;
+                                shadow_map_array[array_position + 3]    = color_pixel.a;
+                            }
                         }
                     }
+
+                    sf::Texture* shadow_texture = &shadow.m_shadow_map[light];
+                    shadow_texture->create(shadow_bounds.width, shadow_bounds.height);
+                    shadow_texture->update(shadow_map_array, shadow_bounds.width, shadow_bounds.height, 0, 0);
+                    // Add blur
+                    shadow.m_shadow_sprite[light].setTexture(*shadow_texture);
+                    shadow.m_shadow_sprite[light].setOrigin(render.getOrigin()
+                                                    -sf::Vector2f(shadow_bounds.left, shadow_bounds.top));
+
+                    delete[] shadow_map_array;
+
+                    light->require_shadow_computation(false);
+
                 }
-
-                sf::Texture* shadow_texture = &shadow.m_shadow_map[light];
-                shadow_texture->create(shadow_bounds.width, shadow_bounds.height);
-                shadow_texture->update(shadow_map_array, shadow_bounds.width, shadow_bounds.height, 0, 0);
-                // Add blur
-                shadow.m_shadow_sprite[light].setTexture(*shadow_texture);
-                shadow.m_shadow_sprite[light].setOrigin(render.getOrigin()
-                                                -sf::Vector2f(shadow_bounds.left, shadow_bounds.top));
-
-
-                delete[] shadow_map_array;
-
-                light->require_shadow_computation(false);
             } 
         });
     }
 
-    
+    void render(EntityManager& entity_manager, const sf::View& view, const sf::Vector2u& screen_size, LightComponent* light) {
+        if(m_shadow_map.getSize().x != screen_size.x + m_shadow_max_shift.width
+        || m_shadow_map.getSize().y != screen_size.y + m_shadow_max_shift.height)
+            m_shadow_map.create(screen_size.x + m_shadow_max_shift.width,
+                                screen_size.y + m_shadow_max_shift.height, true);
+
+    //  std::cout<<m_shadow_max_shift.left<<" "<<m_shadow_max_shift.top<<" "<<
+    //     m_shadow_max_shift.width<<" "<<m_shadow_max_shift.height<<std::endl;
+
+        sf::View shadow_view = view;
+        shadow_view.move(m_shadow_max_shift.width * 0.5 + m_shadow_max_shift.left,
+                        m_shadow_max_shift.height * 0.5 + m_shadow_max_shift.top);
+        shadow_view.setSize(view.getSize().x + m_shadow_max_shift.width,
+                            view.getSize().y + m_shadow_max_shift.height);
+
+        m_shadow_map.setActive(true);
+            glClear(GL_DEPTH_BUFFER_BIT);
+            glEnable(GL_DEPTH_TEST);
+            glDepthMask(GL_TRUE);
+            m_shadow_map.clear(sf::Color::White);
+            m_shadow_map.setView(shadow_view);
+
+            entity_manager.foreach<ShadowSystem_c, ShadowSystem_t>
+            ([&](Entity&, RenderComponent& render, ShadowComponent& shadow)
+            {
+                 m_shadow_map.draw(shadow.m_shadow_sprite[light]);
+            });
+
+            m_shadow_map.display();
+        //m_shadow_map.getTexture().copyToImage().saveToFile("shadow.png");
+        m_shadow_map.setActive(false);
+    }
+
+    sf::RenderTexture* get_shadow_map() {
+        return &m_shadow_map;
+    }
+
+    sf::IntRect get_max_shadow_shift() {
+        return m_shadow_max_shift;
+    }
+
+private:
+
+    sf::RenderTexture m_shadow_map{};
+    sf::IntRect m_shadow_max_shift{};
 
 };
