@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/types.hpp"
+#include "game/systems/shadowsystem.hpp"
 #include <cwchar>
 #include <ratio>
 
@@ -12,12 +13,14 @@ using LightSystem_t = ADE::META_TYPES::Typelist<>;
 
 struct LightSystem {
 
-    int update(EntityManager& entity_manager, sf::Vector2f view_shift) {
+    ShadowSystem shadow_system{};
+
+    int calculate_ligts(EntityManager& entity_manager, sf::Vector2f view_shift) {
 
         m_current_nbr_light = 0;
 
         entity_manager.foreach<LightSystem_c, LightSystem_t>
-        ([&](Entity& entity, LightComponent& light, PhysicsComponent& physics)
+        ([&](Entity&, LightComponent& light, PhysicsComponent& physics)
         {
             sf::Vector3f position(0, 0, 0);
             GLfloat gl_position[] = {0, 0, 0, 1.0};
@@ -29,7 +32,7 @@ struct LightSystem {
 
             position = physics.position(view_shift);
             
-            if(light.light_type == LightType::Directional) {
+            if(light.light_type == LightType::DIRECTIONAL) {
                 gl_position[3] = 0;
             }
 
@@ -56,9 +59,14 @@ struct LightSystem {
             gl_direction[1] = position.y;
             gl_direction[2] = position.z;
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_SPOT_DIRECTION, gl_direction);
+
+            if(light.cast_shadow && light.require_shadow_computation()) {
+                shadow_system.calculate(entity_manager, &light); 
+            }
+            
             
             ++m_current_nbr_light;
-        });
+        }); 
 
         return m_current_nbr_light;
 

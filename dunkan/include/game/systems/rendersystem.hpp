@@ -235,7 +235,6 @@ struct RenderSystem {
         m_colorShader.loadFromMemory(color_fragShader,sf::Shader::Fragment);
         m_depthShader.loadFromMemory(depth_fragShader,sf::Shader::Fragment);
         m_normalShader.loadFromMemory(normal_fragShader,sf::Shader::Fragment);
-        m_normalShader.setUniform("useNormalMap",true);
         m_SSAOShader.loadFromMemory(vertexShader,SSAO_fragShader);
         m_lightingShader.loadFromMemory(vertexShader,lighting_fragShader);
         m_lightingShader.setUniform("ambient_light", sf::Glsl::Vec4(sf::Color{ 180, 180, 180, 255 }));
@@ -256,7 +255,7 @@ struct RenderSystem {
 
         m_renderer.setSize(sf::Vector2f(window_size.x, window_size.y));
         m_renderer.setTextureRect(sf::IntRect(0,0,window_size.x * m_superSampling, window_size.y * m_superSampling));
-        m_renderer.setTexture(&m_colorScreen.getTexture());
+        m_renderer.setTexture(&m_normalScreen.getTexture());
 
         m_lightingShader.setUniform("color_map",m_colorScreen.getTexture());
         m_lightingShader.setUniform("normal_map",m_normalScreen.getTexture());
@@ -321,7 +320,7 @@ struct RenderSystem {
         view_shift -= sf::Vector2f(current_view.getSize().x / 2, current_view.getSize().y / 2);
         m_lightingShader.setUniform("view_shift",view_shift);
 
-        int nbr_lights = light_system.update(entity_manager, view_shift);
+        int nbr_lights = light_system.calculate_ligts(entity_manager, view_shift);
         m_lightingShader.setUniform("nbr_lights",(int)nbr_lights);
 
         m_colorScreen.setActive(true);
@@ -430,8 +429,6 @@ struct RenderSystem {
         } else {
             m_lightingShader.setUniform("useSSAO", false);
         }
-
-        std::cout << "##### SSAO STATUS: " << m_enableSSAO << "\n";
     }
 
 private:

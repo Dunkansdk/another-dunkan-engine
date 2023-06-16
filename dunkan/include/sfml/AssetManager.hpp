@@ -9,9 +9,11 @@
 template<typename ASSET>
 struct AssetManager {
 
-    AssetManager() {
-        // blank constructor
-    }
+    explicit AssetManager() = default;
+    AssetManager(AssetManager&) = delete;
+    AssetManager(AssetManager&&) = delete;
+    AssetManager& operator=(AssetManager&) = delete;
+    AssetManager& operator=(AssetManager&&) = delete;
 
     void load(std::string id, std::string filename) {
         ASSET* asset = new ASSET();
@@ -34,19 +36,12 @@ struct AssetManager {
             return found->second;
     }
 
-    // [[nodiscard]] const ASSET& get(std::string id) const
+    // [[nodiscard]] const std::map<std::string, ASSET*> get_all(std::string id) const
     // {
     //     auto found = m_asset_storage.find(id);  
     //     assert(found != m_asset_storage.end());
-    //         return *found->second;
+    //     return *found->second;
     // }
-
-    [[nodiscard]] const std::map<std::string, ASSET*> get_all(std::string id) const
-    {
-        auto found = m_asset_storage.find(id);  
-        assert(found != m_asset_storage.end());
-            return *found->second;
-    }
 
 private:
     std::map<std::string, ASSET*> m_asset_storage;

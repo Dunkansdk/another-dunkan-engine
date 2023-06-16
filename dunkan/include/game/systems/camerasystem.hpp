@@ -1,8 +1,6 @@
 #pragma once
 
 #include "SFML/Window/Window.hpp"
-#include "game/components/cameracomponent.hpp"
-#include "game/components/physicscomponent.hpp"
 #include "game/types.hpp"
 
 using CameraSystem_c = ADE::META_TYPES::Typelist<CameraComponent, PhysicsComponent>;

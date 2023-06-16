@@ -3,9 +3,9 @@
 #include <SFML/Graphics.hpp>
 
 enum LightType {
-    Spot, 
-    Directional, 
-    Omni
+    SPOT, 
+    DIRECTIONAL, 
+    OMNI
 };
 
 struct LightComponent {
@@ -23,5 +23,18 @@ struct LightComponent {
 
     float radius {50.0f};
     float intensity{1.0f};
+
+    bool cast_shadow{true};
+
+    bool require_shadow_computation() {
+        return this->m_require_shadow_computation;
+    }
+
+    void require_shadow_computation(bool require) {
+        this->m_require_shadow_computation = require;
+    }
+
+private:
+    bool m_require_shadow_computation{false};
 
 };

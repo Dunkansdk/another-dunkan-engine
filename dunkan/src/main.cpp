@@ -12,6 +12,7 @@
 
 #include "game/imguiconfig.hpp"
 
+
 unsigned int m_frame;
 unsigned int m_fps;
 sf::Clock m_clock;
@@ -45,6 +46,9 @@ bool game_entities(EntityManager& entity_manager) {
             .y = 10.f,
             .z = .5f
         });
+    entity_manager.add_component<ShadowComponent>(entity1, ShadowComponent{
+            ShadowCastingType::DIRECTIONNAL
+        });
     entity_manager.add_component<RenderComponent>(entity1, RenderComponent{
             texture_manager.get("Abbey-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Abbey-Albedo").getSize().x, texture_manager.get("Abbey-Albedo").getSize().y),
@@ -59,6 +63,9 @@ bool game_entities(EntityManager& entity_manager) {
             .x = 140.f,
             .y = 180.f,
             .z = -.65f
+        });
+    entity_manager.add_component<ShadowComponent>(entity2, ShadowComponent{
+           ShadowCastingType::DIRECTIONNAL
         });
     entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
             texture_manager.get("Tree-Albedo"), 
@@ -78,7 +85,7 @@ bool game_entities(EntityManager& entity_manager) {
             .z = .5f
         });
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
-            .light_type = LightType::Directional,
+            .light_type = LightType::DIRECTIONAL,
             .diffuse_color = sf::Color(255,255,224),
             .specular_color = sf::Color::White,
             .direction = sf::Vector3f(-1,.5,0),
@@ -93,7 +100,7 @@ bool game_entities(EntityManager& entity_manager) {
             .z = 3.f
         });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
-            .light_type = LightType::Spot,
+            .light_type = LightType::SPOT,
             .diffuse_color = sf::Color::Red,
             .specular_color = sf::Color::White,
             .direction = sf::Vector3f(0, 1.0, 0),
@@ -225,7 +232,7 @@ void update(sf::RenderWindow& window) {
 #endif
 
             camera_system.update(window, dt.asSeconds());
-            physics_system.update(entity_manager, window.getView(), dt.asSeconds());
+            physics_system.update(entity_manager, dt.asSeconds());
             render_system.update(entity_manager, window);
 
             window.display();
@@ -258,13 +265,12 @@ int main() {
 
     sf::ContextSettings context_settings;
     context_settings.depthBits = 24;
-    context_settings.antialiasingLevel = 2;
+    context_settings.stencilBits = 8;
+    context_settings.antialiasingLevel = 4;
     context_settings.attributeFlags = sf::ContextSettings::Core;
 
-    window.create(video_mode, "Window", sf::Style::Close | sf::Style::Titlebar, context_settings);
+    window.create(video_mode, "Window", sf::Style::Close | sf::Style::Resize, context_settings);
     window.setView(view);
-    // window.setVerticalSyncEnabled(true);
-    // window.setFramerateLimit(165);
 
     update(window);
 }

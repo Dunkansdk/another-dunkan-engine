@@ -4,11 +4,11 @@
 #include <cwchar>
 #include <ratio>
 
-using RenderSystem_c = ADE::META_TYPES::Typelist<RenderComponent, PhysicsComponent>;
-using RenderSystem_t = ADE::META_TYPES::Typelist<>;
+using DebugRenderSystem_c = ADE::META_TYPES::Typelist<RenderComponent, PhysicsComponent>;
+using DebugRenderSystem_t = ADE::META_TYPES::Typelist<>;
 
-using LightSystem_c = ADE::META_TYPES::Typelist<LightComponent, PhysicsComponent>;
-using LightSystem_t = ADE::META_TYPES::Typelist<>;
+using DebugLightSystem_c = ADE::META_TYPES::Typelist<LightComponent, PhysicsComponent>;
+using DebugLightSystem_t = ADE::META_TYPES::Typelist<>;
 
 struct DebugSystem {
 
@@ -16,7 +16,7 @@ struct DebugSystem {
 
         ImGui::Begin("Entities");
 
-        entity_manager.foreach<RenderSystem_c, RenderSystem_t>
+        entity_manager.foreach<DebugRenderSystem_c, DebugRenderSystem_t>
         ([&](Entity& entity, RenderComponent& render, PhysicsComponent& physics)
         {
             if (ImGui::TreeNode(std::to_string(static_cast<int>(entity.get_id())).c_str()))
@@ -34,7 +34,7 @@ struct DebugSystem {
 
         ImGui::Begin("Entities");
 
-        entity_manager.foreach<LightSystem_c, LightSystem_t>
+        entity_manager.foreach<DebugLightSystem_c, DebugLightSystem_t>
         ([&](Entity& entity, LightComponent& light, PhysicsComponent& physics)
         {
             if (ImGui::TreeNode(std::to_string(static_cast<int>(entity.get_id())).c_str()))

@@ -63,10 +63,21 @@ struct RenderComponent : public sf::Sprite {
         if(shader != nullptr)
         {
             shader->setUniform("color_map",*m_texture);
-            shader->setUniform("depth_map",*m_depth);
-            shader->setUniform("useDepthMap", true);
-            shader->setUniform("normal_map", *m_normal);
-            shader->setUniform("useNormalMap", true);
+
+            if(m_depth != nullptr) {
+                shader->setUniform("depth_map",*m_depth);
+                shader->setUniform("useDepthMap", true);
+            } else {
+                shader->setUniform("useDepthMap", false);
+            }
+
+            if(m_normal != nullptr) {
+                shader->setUniform("normal_map",*m_normal);
+                shader->setUniform("useNormalMap", true);
+            } else {
+                shader->setUniform("useNormalMap", false);
+            }
+           
             shader->setUniform("height", ((float)height * (float)getScale().x));
         }
     }
