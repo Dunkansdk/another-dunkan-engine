@@ -27,8 +27,8 @@ public:
         this->diffuse_color = diffuse;
         this->specular_color = specular;
         this->direction = direction;
-        this->radius = radius;
-        this->intensity = intensity;
+        this->linear_attenuation = radius;
+        this->quadratic_attenuation = intensity;
         this->cast_shadow = cast_shadow;
     }
 
@@ -37,9 +37,9 @@ public:
     sf::Color diffuse_color {sf::Color::White};
     sf::Color specular_color {sf::Color::White};
 
-    //float contant_attenuation {1.0f};
+    float contant_attenuation {1.0f};
     float linear_attenuation {0.0f};
-    float quadratic_attenuation {1.0f};
+    float quadratic_attenuation {0.0f};
 
     sf::Vector3f direction {0.0f, 0.0f, -1.0f};
 

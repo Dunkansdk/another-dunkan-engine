@@ -130,17 +130,13 @@ const std::string lighting_fragShader = \
     "uniform vec2 shadow_ratio[8];"
     "uniform int debug_screen; "\
     ""
-    "float GetShadowCastValue(int curShadowMap, float heightPixel, vec2 shadowPos) {"
-    "   vec4 shadowPixel;"
-    "   vec2 mapPos = (shadowPos - shadow_shift[curShadowMap]) * shadow_ratio[curShadowMap];"
-    "   if(mapPos.x > 1.0) mapPos.x = 1.0;"
-    "   if(mapPos.y > 1.0) mapPos.y = 1.0;"
-    "   if(mapPos.x < 0.0) mapPos.x = 0.0;"
-    "   if(mapPos.y < 0.0)  return 0.0;"
-	"   if(curShadowMap == 0)"
-	"       shadowPixel = texture2D(shadow_map_0, mapPos);"
-	"   float shadowHeight = (0.5-(shadowPixel.r + shadowPixel.g / 256.0 + shadowPixel.b/65536.0)) * 1000.0;"
-    "   return 1.0 - min(1.0, max(0.0, (shadowHeight - heightPixel - 5.0) * 0.05));"
+    "float GetShadowCastValue(int current_shadow_map, float height_pixel, vec2 shadow_position) {"
+    "   vec4 shadow_pixel;"
+    "   vec2 mapPos = (shadow_position - shadow_shift[current_shadow_map]) * shadow_ratio[current_shadow_map];"
+	"   if(current_shadow_map == 0)"
+	"       shadow_pixel = texture2D(shadow_map_0, mapPos);"
+	"   float shadow_height = (0.5-(shadow_pixel.r + shadow_pixel.g / 256.0 + shadow_pixel.b/65536.0)) * 1000.0;"
+    "   return 1.0 - min(1.0, max(0.0, (shadow_height - height_pixel) * 0.05));"
     "}"
     ""
     "void main()" \
@@ -154,7 +150,7 @@ const std::string lighting_fragShader = \
 	"   frag_pos.y -= height_pixel;"
 	"   frag_pos.z = height_pixel;"
     "   gl_FragColor = gl_Color * ambient_light * color_pixel; "
-    "   int curShadowMap = 0;"
+    "   int current_shadow_map = 0;"
     "   for(int i = 0 ; i < nbr_lights ; ++i)" \
 	"   {" \
 	"	    float lighting = 0.0;" \
@@ -167,31 +163,31 @@ const std::string lighting_fragShader = \
 	"	    else" \
 	"	    {" \
 	"	    	light_direction = gl_LightSource[i].position.xyz - frag_pos.xyz;" \
-    "	    	float dist = length(light_direction) / 100.0;" \
+    "	    	float dist = length(light_direction);" \
 	"	    	lighting = 1.0 /( gl_LightSource[i].constantAttenuation +" \
 	"	    							  dist*gl_LightSource[i].linearAttenuation +" \
 	"	    							  dist*dist*gl_LightSource[i].quadraticAttenuation);" \
 	"	    }" \
     "       light_direction = normalize(light_direction);"
-	"       if(curShadowMap < 8 && shadow_caster[curShadowMap] == i) {"
+	"       if(current_shadow_map < 8 && shadow_caster[current_shadow_map] == i) {"
 	"           if(gl_LightSource[i].position.w == 0.0){"
-	"               vec2 shadowPos = gl_FragCoord.xy;"
-	"               shadowPos.y += height_pixel;"
+	"               vec2 shadow_position = gl_FragCoord.xy;"
+	"               shadow_position.y += height_pixel;"
 	"               vec3 v = vec3((height_pixel * light_direction.xy / light_direction.z), 0.0);"
-	"               shadowPos.x -= v.x;"
-	"               shadowPos.y += v.y;"
+	"               shadow_position.x -= v.x;"
+	"               shadow_position.y += v.y;"
 	"               vec4 shadow_pixel= vec4(0.0, 0.0, 0.0, 0.0);"
-	"               lighting *= (GetShadowCastValue(curShadowMap,height_pixel,shadowPos)*4.0"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(3.0,0.0))*2.0"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(-3.0,0.0))*2.0"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(0.0,3.0))*2.0"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(0.0,-3.0))*2.0"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(2.0,2.0))"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(-2.0,2.0))"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(-2.0,-2.0))"
-    "                            +GetShadowCastValue(curShadowMap,height_pixel,shadowPos+vec2(2.0,-2.0)))/16.0;"
+	"               lighting *= (GetShadowCastValue(current_shadow_map,height_pixel,shadow_position)*4.0"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(3.0,0.0))*2.0"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(-3.0,0.0))*2.0"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(0.0,3.0))*2.0"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(0.0,-3.0))*2.0"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(2.0,2.0))"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(-2.0,2.0))"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(-2.0,-2.0))"
+    "                            +GetShadowCastValue(current_shadow_map,height_pixel,shadow_position+vec2(2.0,-2.0)))/16.0;"
 	"           }"
-	"           ++curShadowMap;"
+	"           ++current_shadow_map;"
 	"       }"
 	"       lighting *= max(0.0, dot(direction,light_direction));"
 	"	    lighting *= gl_LightSource[i].diffuse.a;" \
@@ -241,7 +237,9 @@ const std::string SSAO_fragShader = \
 	"   mat3 rot = mat3(t, cross(direction,t), direction);"
 	"   for(int i =0 ; i < 16 ; ++i){"
 	"       vec3 decal = rot * samples_hemisphere[i] * 20.0;"
-	"       vec3 screen_pos = gl_FragCoord.xyz + decal;"
+	"       vec3 screen_decal = decal;"
+	"       screen_decal.y *= -1;"
+	"       vec3 screen_pos = gl_FragCoord.xyz  + screen_decal;"
 	"       vec3 occl_depth_pixel = texture2D(depth_map, (screen_pos.xy) * screen_ratio).rgb;"
 	"       float occl_height = (0.5 - (occl_depth_pixel.r + occl_depth_pixel.g / 256.0 + occl_depth_pixel.b / 65536.0)) * 1000.0;"
     "       if(occl_height > (frag_pos.z+decal.z) + 1.0"
@@ -280,7 +278,7 @@ struct RenderSystem {
             r = false;
         
         m_colorShader.loadFromMemory(color_fragShader,sf::Shader::Fragment);
-        m_depthShader.loadFromMemory(depth_fragShader,sf::Shader::Fragment);
+        light_system.m_depthShader.loadFromMemory(depth_fragShader,sf::Shader::Fragment);
         m_normalShader.loadFromMemory(normal_fragShader,sf::Shader::Fragment);
         m_SSAOShader.loadFromMemory(vertexShader,SSAO_fragShader);
         light_system.m_lightingShader.loadFromMemory(vertexShader,lighting_fragShader);
@@ -416,9 +414,9 @@ struct RenderSystem {
             m_normalScreen.setActive(false);
 
             m_depthScreen.setActive(true);
-                m_depthShader.setUniform("z_position",physics.z);
-                render.prepare_shader(&m_depthShader);
-                state.shader = &m_depthShader;
+                light_system.m_depthShader.setUniform("z_position",physics.z);
+                render.prepare_shader(&light_system.m_depthShader);
+                state.shader = &light_system.m_depthShader;
                 m_depthScreen.draw(render, state);
             m_depthScreen.setActive(false);
 
@@ -504,9 +502,9 @@ private:
     sf::Shader m_default_shader;
     sf::Shader m_geometry_shader;
 
+    // TODO: Refactor shaders with a shader manager
     sf::Shader m_colorShader;
     sf::Shader m_normalShader;
-    sf::Shader m_depthShader;  
 
     int m_superSampling{1};
     sf::RenderTexture m_colorScreen;

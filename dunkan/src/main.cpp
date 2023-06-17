@@ -80,25 +80,21 @@ bool game_entities(EntityManager& entity_manager) {
     // Sunlight
     Entity& entity3 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity3, PhysicsComponent{
-            .x = 900.f,
-            .y = 900.f,
-            .z = .5f
+            .x = 0.f,
+            .y = 0.f,
+            .z = 0.f
         });
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
-            LightType::DIRECTIONAL, sf::Color(255,255,224), sf::Color::White,
-            sf::Vector3f(-1,.5,0), 50.f, 60.f, true
+            LightType::DIRECTIONAL, sf::Color(190,190,190), sf::Color::White,
+            sf::Vector3f(-1,-.2,-1), 0.f, 0.f, false
         });
 
     // Spotlight
     Entity& entity4 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
-            .x = 500.f,
-            .y = 200.f,
-            .z = 3.f
-        });
+    entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{});
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
             LightType::SPOT, sf::Color::Red, sf::Color::White,
-            sf::Vector3f(0, 1.0, 0), 1.f, 2.f, true
+            sf::Vector3f(0, 1.0, 0), .00001f, .00001f, true
         });
 
     Entity& entity5 = entity_manager.create_entity();
@@ -107,9 +103,12 @@ bool game_entities(EntityManager& entity_manager) {
             .y = 0.f,
             .z = .5f
         });
+    entity_manager.add_component<ShadowComponent>(entity5, ShadowComponent{
+        ShadowCastingType::ALL_SHADOWS
+    });
     entity_manager.add_component<RenderComponent>(entity5, RenderComponent{
             texture_manager.get("Wetsand-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 3, texture_manager.get("Wetsand-Albedo").getSize().y * 4),
+            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 4, texture_manager.get("Wetsand-Albedo").getSize().y * 4),
             10.f,
             1.f,
             texture_manager.get("Wetsand-Normal"), 
@@ -140,6 +139,9 @@ bool game_entities(EntityManager& entity_manager) {
             .y = 580.f,
             .z = -.65f
         });
+    entity_manager.add_component<ShadowComponent>(entity7, ShadowComponent{
+        ShadowCastingType::ALL_SHADOWS
+    });
     entity_manager.add_component<RenderComponent>(entity7, RenderComponent{
             texture_manager.get("Tree-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Tree-Albedo").getSize().x, texture_manager.get("Tree-Albedo").getSize().y),

@@ -16,6 +16,7 @@ struct LightSystem {
 
     ShadowSystem shadow_system{};
     sf::Shader m_lightingShader;
+    sf::Shader m_depthShader;
 
     void calculate_ligts(EntityManager& entity_manager, sf::Vector2f view_shift, const sf::View &view,
                                  const sf::Vector2u &screen_size) {
@@ -38,10 +39,11 @@ struct LightSystem {
             if(light.radius < 0.f) light.radius = 0.f;
             if(light.intensity < 0.f) light.intensity = 0.f;
 
-            position = physics.position(view_shift);
-            
             if(light.light_type == LightType::DIRECTIONAL) {
+                position = light.direction;
                 gl_position[3] = 0;
+            } else {
+                position = physics.position(view_shift);
             }
 
             gl_position[0] = position.x;
@@ -50,15 +52,15 @@ struct LightSystem {
 
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_POSITION, gl_position);
             SfColorToGlColor(light.diffuse_color, glColor);
-            glColor[0] *= light.intensity;
-            glColor[1] *= light.intensity;
-            glColor[2] *= light.intensity;
+            // glColor[0] *= light.intensity;
+            // glColor[1] *= light.intensity;
+            // glColor[2] *= light.intensity;
 
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_DIFFUSE, glColor);
             SfColorToGlColor(light.specular_color, glColor);
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_SPECULAR, glColor);
-            // glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.contant_attenuation);
-            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.radius);
+            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.contant_attenuation);
+            // glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.radius);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_LINEAR_ATTENUATION, light.linear_attenuation);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_QUADRATIC_ATTENUATION, light.quadratic_attenuation);
             
@@ -71,7 +73,7 @@ struct LightSystem {
             if(light.cast_shadow) {
                 if(light.require_shadow_computation())
                     shadow_system.calculate(entity_manager, &light); 
-                shadow_system.render(entity_manager, view, screen_size, &light);
+                shadow_system.render(entity_manager, view, screen_size, &light, &m_depthShader);
             }
 
 
@@ -81,7 +83,7 @@ struct LightSystem {
             if(light.cast_shadow)
             {
                 buffer << "shadow_map_" << m_current_nbr_shadows;
-                shadow_casting_lights[m_current_nbr_shadows] = m_current_nbr_light;
+                shadow_casting_lights[m_current_nbr_shadows] = (float)m_current_nbr_light;
                 sf::IntRect cur_shift = shadow_system.get_max_shadow_shift();
                 shadow_shift[m_current_nbr_shadows] = sf::Vector2f(cur_shift.left,
                                                         -cur_shift.height - cur_shift.top ); /*GLSL Reverse y-coord*/
