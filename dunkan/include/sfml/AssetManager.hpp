@@ -49,7 +49,7 @@ private:
     void insert(std::string id, ASSET* resource) 
     {
         auto inserted = m_asset_storage.emplace(id, std::move(resource));
-        assert(inserted.second);
+        // assert(inserted.second);
     }
 
 };

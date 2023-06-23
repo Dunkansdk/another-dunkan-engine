@@ -30,23 +30,25 @@ struct DebugSystem {
             }
         });
 
-        ImGui::End();
-
-        ImGui::Begin("Entities");
-
         entity_manager.foreach<DebugLightSystem_c, DebugLightSystem_t>
         ([&](Entity& entity, LightComponent& light, PhysicsComponent& physics)
         {
             if (ImGui::TreeNode(std::to_string(static_cast<int>(entity.get_id())).c_str()))
             {
-                ImGui::DragFloat("X", &physics.x, 1.0f);
-                ImGui::DragFloat("Y", &physics.y, 1.0f);
-                ImGui::DragFloat("Z", &physics.z, 1.0f);
-                ImGui::DragFloat("directionx", &light.direction.x, .01f);
-                ImGui::DragFloat("directiony", &light.direction.y, .01f);
-                ImGui::DragFloat("directionz", &light.direction.z, .01f);
-                ImGui::DragFloat("intensity", &light.intensity, .01f);
-                ImGui::DragFloat("radius", &light.radius, .01f);
+                if(light.light_type == LightType::DIRECTIONAL) {
+                    if (ImGui::Button("Recalculate Direction")) {
+                        light.require_shadow_computation(true);
+                    }
+                    ImGui::SliderFloat("Direction X", &light.direction.x, -2.0f, 2.0f);
+                    ImGui::SliderFloat("Direction Y", &light.direction.y, -2.0f, 2.0f);
+                    ImGui::SliderFloat("Direction Z", &light.direction.z, -2.0f, 2.0f);
+                } else {
+                    ImGui::DragFloat("X", &physics.x, 1.0f);
+                    ImGui::DragFloat("Y", &physics.y, 1.0f);
+                    ImGui::DragFloat("Z", &physics.z, 1.0f);
+                }
+                ImGui::SliderFloat("Radius", &light.radius, 0.0f, 80.f);
+                ImGui::SliderFloat("Intensity", &light.intensity, 0.f, 100.f);
                 
                 ImGui::TreePop();
             }
@@ -54,5 +56,6 @@ struct DebugSystem {
 
         ImGui::End();
     }
+
 };
 

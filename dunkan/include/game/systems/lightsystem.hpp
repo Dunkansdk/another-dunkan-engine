@@ -52,15 +52,15 @@ struct LightSystem {
 
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_POSITION, gl_position);
             SfColorToGlColor(light.diffuse_color, glColor);
-            // glColor[0] *= light.intensity;
-            // glColor[1] *= light.intensity;
-            // glColor[2] *= light.intensity;
+            glColor[0] *= light.intensity;
+            glColor[1] *= light.intensity;
+            glColor[2] *= light.intensity;
 
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_DIFFUSE, glColor);
             SfColorToGlColor(light.specular_color, glColor);
             glLightfv(GL_LIGHT0 + m_current_nbr_light, GL_SPECULAR, glColor);
-            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.contant_attenuation);
-            // glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.radius);
+            // glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.contant_attenuation);
+            glLightf(GL_LIGHT0 + m_current_nbr_light, GL_CONSTANT_ATTENUATION, light.radius);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_LINEAR_ATTENUATION, light.linear_attenuation);
             glLightf(GL_LIGHT0 + m_current_nbr_light, GL_QUADRATIC_ATTENUATION, light.quadratic_attenuation);
             
@@ -72,7 +72,8 @@ struct LightSystem {
 
             if(light.cast_shadow) {
                 if(light.require_shadow_computation())
-                    shadow_system.calculate(entity_manager, &light); 
+                    shadow_system.calculate(entity_manager, &light);
+                    
                 shadow_system.render(entity_manager, view, screen_size, &light, &m_depthShader);
             }
 
@@ -89,6 +90,7 @@ struct LightSystem {
                                                         -cur_shift.height - cur_shift.top ); /*GLSL Reverse y-coord*/
                 shadow_ratio[m_current_nbr_shadows] = sf::Vector2f(1.0/(float) shadow_system.get_shadow_map()->getSize().x,
                                                         1.0/(float)shadow_system.get_shadow_map()->getSize().y);
+                //std::cout << "Buffer: " << buffer.str() << std::endl;               
                 m_lightingShader.setUniform(buffer.str(), shadow_system.get_shadow_map());
 
                 ++m_current_nbr_shadows;
@@ -103,6 +105,10 @@ struct LightSystem {
         m_lightingShader.setUniform("view_shift",view_shift);
         m_lightingShader.setUniform("nbr_lights",(int)m_current_nbr_light);
 
+    }
+
+    sf::Shader* get_light_shader() {
+        return &m_lightingShader;
     }
 
 private:

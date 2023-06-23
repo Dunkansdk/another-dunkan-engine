@@ -40,6 +40,10 @@ bool game_entities(EntityManager& entity_manager) {
     texture_manager.load(std::string("Wetsand-Normal"), std::string("data/wetsand_normal.png"));
     texture_manager.load(std::string("Wetsand-Material"), std::string("data/wetsand_normal.png"));
 
+    texture_manager.load(std::string("Sarco-Albedo"), std::string("data/sarco_albedo.png"));
+    texture_manager.load(std::string("Sarco-Depth"), std::string("data/sarco_height.png"));
+    texture_manager.load(std::string("Sarco-Normal"), std::string("data/sarco_normal.png"));
+
     Entity& entity1 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{
             .x = 350.f,
@@ -47,7 +51,7 @@ bool game_entities(EntityManager& entity_manager) {
             .z = .5f
         });
     entity_manager.add_component<ShadowComponent>(entity1, ShadowComponent{
-            ShadowCastingType::ALL_SHADOWS
+            ShadowCastingType::DIRECTIONNAL
         });
     entity_manager.add_component<RenderComponent>(entity1, RenderComponent{
             texture_manager.get("Abbey-Albedo"), 
@@ -65,7 +69,7 @@ bool game_entities(EntityManager& entity_manager) {
             .z = -.65f
         });
     entity_manager.add_component<ShadowComponent>(entity2, ShadowComponent{
-           ShadowCastingType::ALL_SHADOWS
+           ShadowCastingType::DIRECTIONNAL
         });
     entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
             texture_manager.get("Tree-Albedo"), 
@@ -80,35 +84,39 @@ bool game_entities(EntityManager& entity_manager) {
     // Sunlight
     Entity& entity3 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity3, PhysicsComponent{
-            .x = 0.f,
-            .y = 0.f,
-            .z = 0.f
+            .x = 900.f,
+            .y = 900.f,
+            .z = .5f
         });
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
-            LightType::DIRECTIONAL, sf::Color(190,190,190), sf::Color::White,
-            sf::Vector3f(-1,-.2,-1), 0.f, 0.f, false
+            LightType::DIRECTIONAL, sf::Color(255,255,224), sf::Color::White,
+            sf::Vector3f(1,-.2,-1), 50.f, 60.f, true
         });
 
     // Spotlight
     Entity& entity4 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{});
+    entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
+            .x = 500.f,
+            .y = 200.f,
+            .z = 3.f
+        });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
             LightType::SPOT, sf::Color::Red, sf::Color::White,
-            sf::Vector3f(0, 1.0, 0), .00001f, .00001f, true
+             sf::Vector3f(0, 1.0, 0), 1.f, 2.f, true
         });
 
     Entity& entity5 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity5, PhysicsComponent{
-            .x = 0.f,
-            .y = 0.f,
+            .x = -512.f,
+            .y = -224.f,
             .z = .5f
         });
     entity_manager.add_component<ShadowComponent>(entity5, ShadowComponent{
-        ShadowCastingType::ALL_SHADOWS
-    });
+            ShadowCastingType::NO_SHADOW
+        });
     entity_manager.add_component<RenderComponent>(entity5, RenderComponent{
             texture_manager.get("Wetsand-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 4, texture_manager.get("Wetsand-Albedo").getSize().y * 4),
+            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 7, texture_manager.get("Wetsand-Albedo").getSize().y * 7),
             10.f,
             1.f,
             texture_manager.get("Wetsand-Normal"), 
@@ -122,6 +130,9 @@ bool game_entities(EntityManager& entity_manager) {
             .x = 300.f,
             .y = 300.f,
             .z = -.65f
+        });
+    entity_manager.add_component<ShadowComponent>(entity6, ShadowComponent{
+            ShadowCastingType::DIRECTIONNAL
         });
     entity_manager.add_component<RenderComponent>(entity6, RenderComponent{
             texture_manager.get("Torus-Albedo"), 
@@ -140,8 +151,8 @@ bool game_entities(EntityManager& entity_manager) {
             .z = -.65f
         });
     entity_manager.add_component<ShadowComponent>(entity7, ShadowComponent{
-        ShadowCastingType::ALL_SHADOWS
-    });
+            ShadowCastingType::DIRECTIONNAL
+        });
     entity_manager.add_component<RenderComponent>(entity7, RenderComponent{
             texture_manager.get("Tree-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Tree-Albedo").getSize().x, texture_manager.get("Tree-Albedo").getSize().y),
@@ -150,6 +161,24 @@ bool game_entities(EntityManager& entity_manager) {
             texture_manager.get("Tree-Normal"), 
             texture_manager.get("Tree-Depth"), 
             texture_manager.get("Tree-Material")
+        }).load();
+
+    Entity& entity8 = entity_manager.create_entity();
+    entity_manager.add_component<PhysicsComponent>(entity8, PhysicsComponent{
+            .x = 450.f,
+            .y = 200.f,
+            .z = .5f
+        });
+    entity_manager.add_component<ShadowComponent>(entity8, ShadowComponent{
+            ShadowCastingType::DIRECTIONNAL
+        });
+    entity_manager.add_component<RenderComponent>(entity8, RenderComponent{
+            texture_manager.get("Sarco-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Sarco-Albedo").getSize().x, texture_manager.get("Sarco-Albedo").getSize().y),
+            85.f,
+            1.f,
+            texture_manager.get("Sarco-Normal"), 
+            texture_manager.get("Sarco-Depth")
         }).load();
 
     return true;

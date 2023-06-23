@@ -3,6 +3,7 @@
 #include <SFML/OpenGL.hpp>
 
 #include "ecs/utils/Mathematics.hpp"
+#include "sfml/TextureModifier.hpp"
 #include "game/types.hpp"
 
 using ShadowSystem_c = ADE::META_TYPES::Typelist<RenderComponent, PhysicsComponent, ShadowComponent>;
@@ -119,7 +120,7 @@ struct ShadowSystem {
                     sf::Texture* shadow_texture = &shadow.m_shadow_map[light];
                     shadow_texture->create(shadow_bounds.width, shadow_bounds.height);
                     shadow_texture->update(shadow_map_array, shadow_bounds.width, shadow_bounds.height, 0, 0);
-                    // Add blur
+                    ///TextureModifier().BlurTexture(shadow_texture, 5.0f);
                     shadow.m_shadow_sprite[light].setTexture(*shadow_texture);
                     shadow.m_shadow_sprite[light].setOrigin(render.getOrigin()
                                                     -sf::Vector2f(shadow_bounds.left, shadow_bounds.top));
@@ -134,25 +135,22 @@ struct ShadowSystem {
     }
 
     void render(EntityManager& entity_manager, const sf::View& view, const sf::Vector2u& screen_size, LightComponent* light, sf::Shader* depth_shader) {
+
+        sf::View shadow_view = view;
+        sf::Vector2f view_shift = view.getCenter();
+        view_shift -= sf::Vector2f(view.getSize().x / 2, view.getSize().y / 2);
+
         if(m_shadow_map.getSize().x != screen_size.x + m_shadow_max_shift.width
         || m_shadow_map.getSize().y != screen_size.y + m_shadow_max_shift.height) {
             std::cout << "m_shadow_map: " << screen_size.x + m_shadow_max_shift.width << " " << screen_size.y + m_shadow_max_shift.height << " " <<
-        m_shadow_map.getSize().x << " " << m_shadow_map.getSize().y << std::endl;
-        m_shadow_map.create(screen_size.x + m_shadow_max_shift.width,
-                                screen_size.y + m_shadow_max_shift.height, true);
+            m_shadow_map.getSize().x << " " << m_shadow_map.getSize().y << std::endl;
+            m_shadow_map.create(screen_size.x + m_shadow_max_shift.width, screen_size.y + m_shadow_max_shift.height, true);
         }
-            
-        // std::cout << "m_shadow_max_shift: " << m_shadow_max_shift.left << " " << m_shadow_max_shift.top << " " <<
-        // m_shadow_max_shift.width << " " << m_shadow_max_shift.height << std::endl;
 
-        sf::View shadow_view = view;
-        shadow_view.move(m_shadow_max_shift.width * 0.5 + m_shadow_max_shift.left,
-                        m_shadow_max_shift.height * 0.5 + m_shadow_max_shift.top);
+        shadow_view.move(m_shadow_max_shift.width * 0.5 - m_shadow_max_shift.left,
+                        m_shadow_max_shift.height * 0.5 - m_shadow_max_shift.top);
         shadow_view.setSize(view.getSize().x + m_shadow_max_shift.width,
                             view.getSize().y + m_shadow_max_shift.height);
-
-        sf::Vector2f view_shift = view.getCenter();
-        view_shift -= sf::Vector2f(view.getSize().x / 2, view.getSize().y / 2);
 
         m_shadow_map.setActive(true);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -172,13 +170,14 @@ struct ShadowSystem {
                 depth_shader->setUniform("z_position", physics.z);
 
                 sf::Vector3f light_direction = Normalize(light->direction);
-                global_position.x -= physics.x * light_direction.x / light_direction.z;
-                global_position.x -= physics.y * light_direction.y / light_direction.z;
+                global_position.x -= (physics.position(view_shift).x) * light_direction.x / light_direction.z;
+                global_position.x -= (physics.position(view_shift).y) * light_direction.y / light_direction.z;
                 global_position.z = 0;
 
                 sf::RenderStates state;
                 sf::Vector3f t = global_position;
-                state.transform.translate(t.x - view_shift.x, t.y - view_shift.y);
+                // state.transform = sf::Transform::Identity;
+                state.transform.translate(t.x, t.y);
                 state.shader = depth_shader;
                 m_shadow_map.draw(shadow.m_shadow_sprite[light], state);
             });

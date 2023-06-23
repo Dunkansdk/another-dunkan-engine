@@ -54,7 +54,6 @@ struct RenderComponent : public sf::Sprite {
 
     RenderComponent& load() {
         sf::Sprite::setTexture(*(m_texture));
-        std::cout << "Texture sizex: " << (*m_texture).getSize().x << "\n";
         sf::Sprite::setScale(sf::Vector2f(scale, scale));
         return *(this);
     }
