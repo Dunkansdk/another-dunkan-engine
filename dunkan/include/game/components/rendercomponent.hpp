@@ -73,10 +73,21 @@ struct RenderComponent : public sf::Sprite {
             if(m_normal != nullptr) {
                 shader->setUniform("normal_map",*m_normal);
                 shader->setUniform("useNormalMap", true);
+                
             } else {
                 shader->setUniform("useNormalMap", false);
             }
-           
+
+            if(m_material != nullptr) {
+                shader->setUniform("material_map",*m_material);
+                shader->setUniform("enable_materialMap", true);
+            } else {
+                shader->setUniform("enable_materialMap", false);
+            }
+            
+            shader->setUniform("p_roughness", roughness);
+            shader->setUniform("p_metalness", metalness);
+            shader->setUniform("p_translucency", translucency);
             shader->setUniform("height", ((float)height * (float)getScale().x));
         }
     }
@@ -86,10 +97,14 @@ struct RenderComponent : public sf::Sprite {
     bool is_selected{false};
     bool moveable{true};
     
-    sf::Texture* m_texture;
-    sf::Texture* m_depth;
-    sf::Texture* m_normal;
-    sf::Texture* m_material;
+    sf::Texture* m_texture{nullptr};
+    sf::Texture* m_depth{nullptr};
+    sf::Texture* m_normal{nullptr};
+    sf::Texture* m_material{nullptr};
+    
+    float roughness{0.f};
+    float metalness{0.f};
+    float translucency{0.f};
 
 };
 

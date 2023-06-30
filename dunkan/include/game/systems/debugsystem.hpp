@@ -26,6 +26,9 @@ struct DebugSystem {
                 ImGui::DragFloat("Z", &physics.z, .01f);
                 ImGui::DragFloat("Height", &render.height, .5f);
                 ImGui::DragFloat("Scale", &render.scale, .01f);
+                ImGui::DragFloat("Roughness", &render.roughness, .01f);
+                ImGui::DragFloat("Metalness", &render.metalness, .01f);
+                ImGui::DragFloat("Translucency", &render.translucency, .01f);
                 ImGui::TreePop();
             }
         });
@@ -36,19 +39,19 @@ struct DebugSystem {
             if (ImGui::TreeNode(std::to_string(static_cast<int>(entity.get_id())).c_str()))
             {
                 if(light.light_type == LightType::DIRECTIONAL) {
-                    if (ImGui::Button("Recalculate Direction")) {
-                        light.require_shadow_computation(true);
-                    }
-                    ImGui::SliderFloat("Direction X", &light.direction.x, -2.0f, 2.0f);
-                    ImGui::SliderFloat("Direction Y", &light.direction.y, -2.0f, 2.0f);
-                    ImGui::SliderFloat("Direction Z", &light.direction.z, -2.0f, 2.0f);
+                    // if (ImGui::Button("Recalculate Direction")) {
+                    //     light.require_shadow_computation = true;
+                    // }
+                    ImGui::SliderFloat("Direction X", &light.direction.x, -1.0f, 1.0f);
+                    ImGui::SliderFloat("Direction Y", &light.direction.y, -1.0f, 1.0f);
+                    ImGui::SliderFloat("Direction Z", &light.direction.z, -1.0f, 0.0f);
                 } else {
                     ImGui::DragFloat("X", &physics.x, 1.0f);
                     ImGui::DragFloat("Y", &physics.y, 1.0f);
                     ImGui::DragFloat("Z", &physics.z, 1.0f);
                 }
-                ImGui::SliderFloat("Radius", &light.radius, 0.0f, 80.f);
-                ImGui::SliderFloat("Intensity", &light.intensity, 0.f, 100.f);
+                // ImGui::SliderFloat("Radius", &light.radius, 0.0f, 80.f);
+                // ImGui::SliderFloat("Intensity", &light.intensity, 0.f, 100.f);
                 
                 ImGui::TreePop();
             }

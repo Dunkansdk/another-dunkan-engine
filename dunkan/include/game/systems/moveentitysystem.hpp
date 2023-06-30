@@ -31,7 +31,7 @@ struct MoveEntitySystem {
 
                     // Move entity
                     physics.x = x - (render.m_texture->getSize().x / 2);
-                    physics.y = y - (render.m_texture->getSize().y / 2);
+                    physics.y = y - (render.m_texture->getSize().y / 2) + physics.z;
 
                     // Zoom event
                     if(event.type == sf::Event::MouseWheelScrolled) {

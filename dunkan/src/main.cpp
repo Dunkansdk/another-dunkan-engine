@@ -10,6 +10,8 @@
 #include "game/systems/rendersystem.hpp"
 #include "game/systems/moveentitysystem.hpp"
 
+#include "utils/Configuration.hpp"
+
 #include "game/imguiconfig.hpp"
 
 
@@ -50,9 +52,6 @@ bool game_entities(EntityManager& entity_manager) {
             .y = 10.f,
             .z = .5f
         });
-    entity_manager.add_component<ShadowComponent>(entity1, ShadowComponent{
-            ShadowCastingType::DIRECTIONNAL
-        });
     entity_manager.add_component<RenderComponent>(entity1, RenderComponent{
             texture_manager.get("Abbey-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Abbey-Albedo").getSize().x, texture_manager.get("Abbey-Albedo").getSize().y),
@@ -67,9 +66,6 @@ bool game_entities(EntityManager& entity_manager) {
             .x = 140.f,
             .y = 180.f,
             .z = -.65f
-        });
-    entity_manager.add_component<ShadowComponent>(entity2, ShadowComponent{
-           ShadowCastingType::DIRECTIONNAL
         });
     entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
             texture_manager.get("Tree-Albedo"), 
@@ -89,8 +85,10 @@ bool game_entities(EntityManager& entity_manager) {
             .z = .5f
         });
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
-            LightType::DIRECTIONAL, sf::Color(255,255,224), sf::Color::White,
-            sf::Vector3f(1,-.2,-1), 50.f, 60.f, true
+            .light_type = LightType::DIRECTIONAL,
+            .diffuse_color = sf::Color(255,255,224),
+            .direction = sf::Vector3f(-1,-.2,-1),
+            .intensity = 5.0f
         });
 
     // Spotlight
@@ -101,8 +99,11 @@ bool game_entities(EntityManager& entity_manager) {
             .z = 3.f
         });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
-            LightType::SPOT, sf::Color::Red, sf::Color::White,
-             sf::Vector3f(0, 1.0, 0), 1.f, 2.f, true
+            .light_type = LightType::SPOT,
+            .diffuse_color = sf::Color(255,190,64),
+            .direction = sf::Vector3f(0, 1.0, 0),
+            .radius = 3.0f,
+            .intensity = 10.0f
         });
 
     Entity& entity5 = entity_manager.create_entity();
@@ -110,9 +111,6 @@ bool game_entities(EntityManager& entity_manager) {
             .x = -512.f,
             .y = -224.f,
             .z = .5f
-        });
-    entity_manager.add_component<ShadowComponent>(entity5, ShadowComponent{
-            ShadowCastingType::NO_SHADOW
         });
     entity_manager.add_component<RenderComponent>(entity5, RenderComponent{
             texture_manager.get("Wetsand-Albedo"), 
@@ -131,9 +129,6 @@ bool game_entities(EntityManager& entity_manager) {
             .y = 300.f,
             .z = -.65f
         });
-    entity_manager.add_component<ShadowComponent>(entity6, ShadowComponent{
-            ShadowCastingType::DIRECTIONNAL
-        });
     entity_manager.add_component<RenderComponent>(entity6, RenderComponent{
             texture_manager.get("Torus-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Torus-Albedo").getSize().x, texture_manager.get("Torus-Albedo").getSize().y),
@@ -149,9 +144,6 @@ bool game_entities(EntityManager& entity_manager) {
             .x = 540.f,
             .y = 580.f,
             .z = -.65f
-        });
-    entity_manager.add_component<ShadowComponent>(entity7, ShadowComponent{
-            ShadowCastingType::DIRECTIONNAL
         });
     entity_manager.add_component<RenderComponent>(entity7, RenderComponent{
             texture_manager.get("Tree-Albedo"), 
@@ -169,9 +161,6 @@ bool game_entities(EntityManager& entity_manager) {
             .y = 200.f,
             .z = .5f
         });
-    entity_manager.add_component<ShadowComponent>(entity8, ShadowComponent{
-            ShadowCastingType::DIRECTIONNAL
-        });
     entity_manager.add_component<RenderComponent>(entity8, RenderComponent{
             texture_manager.get("Sarco-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Sarco-Albedo").getSize().x, texture_manager.get("Sarco-Albedo").getSize().y),
@@ -180,6 +169,8 @@ bool game_entities(EntityManager& entity_manager) {
             texture_manager.get("Sarco-Normal"), 
             texture_manager.get("Sarco-Depth")
         }).load();
+
+    Configuration::load(entity_manager);
 
     return true;
 }
@@ -249,7 +240,10 @@ void update(sf::RenderWindow& window) {
             ImGui::Text("FPS: %f", (float)m_fps);
             ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
             if (ImGui::Button("SSAO")) {
-                render_system.SSAO_option(!render_system.m_enableSSAO);
+                render_system.SSAO_option(!Configuration::get()->enable_SSAO);
+            }
+            if (ImGui::Button("Gamma Correction")) {
+                render_system.enable_gamma_correction(!Configuration::get()->enable_SRGB);
             }
             ImGui::End();
             debug_system.update(entity_manager);

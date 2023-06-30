@@ -107,13 +107,13 @@ namespace ADE {
         }
 
         template<typename COMPONENT>
-        auto const& get_singleton_component() const {
-            return m_components.template get_singleton_component<COMPONENT>();
+        COMPONENT const& get_singleton_component() const {
+            return m_components.template get_singleton_storage<COMPONENT>();
         }
 
         template<typename COMPONENT>
-        auto& get_singleton_component() {
-            return m_components.template get_singleton_component<COMPONENT>();
+        COMPONENT& get_singleton_component() {
+            return m_components.template get_singleton_storage<COMPONENT>();
         }
 
         template<typename COMPONENT>
