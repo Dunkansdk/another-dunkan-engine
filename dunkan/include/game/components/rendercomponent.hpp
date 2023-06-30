@@ -45,6 +45,15 @@ struct RenderComponent : public sf::Sprite {
         m_material->setRepeated(true);
     }
 
+    RenderComponent(sf::Texture& albedo, const sf::IntRect &rectangle, float height, float scale,  sf::Texture& normal, sf::Texture& depth, float roughness, float metalness, float translucency) 
+        : sf::Sprite(albedo, rectangle)
+    {
+        new (this) RenderComponent(albedo, rectangle, height, scale, normal, depth);
+        this->roughness = roughness;
+        this->metalness = metalness;
+        this->translucency = translucency;
+    }
+
     RenderComponent(sf::Texture& albedo, const sf::IntRect &rectangle, float height, float scale,  sf::Texture& normal, sf::Texture& depth, sf::Texture& material, bool moveable) 
         : sf::Sprite(albedo, rectangle)
     {

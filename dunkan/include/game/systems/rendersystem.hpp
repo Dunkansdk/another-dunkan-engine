@@ -77,6 +77,8 @@ const std::string pbr_fragShader = \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
+    "   if(color_pixel.a < .9)"
+    "       color_pixel.a = 0;"
     "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);" \
     "   gl_FragColor = gl_Color * material_pixel; " \
     "}";
@@ -99,7 +101,7 @@ const std::string depth_fragShader = \
     "   gl_FragDepth = 1.0 - color_alpha * (0.5 + z_pixel * 0.001);" \
     "   gl_FragColor.r = gl_FragDepth;" \
     "   gl_FragColor.g = (gl_FragDepth - floor(gl_FragDepth * 256.0) / 256.0) * 256.0;" \
-    "   gl_FragColor.b = (gl_FragDepth - floor(gl_FragDepth * (65536.0))/65536.0)*65536.0;" \
+    "   gl_FragColor.b = (gl_FragDepth - floor(gl_FragDepth * (65536.0)) / 65536.0) * 65536.0;" \
     "   gl_FragColor.a = color_alpha;" \
     "}";
 
@@ -396,7 +398,7 @@ struct RenderSystem {
             sf::Color c = sf::Color::White;
             c.r = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
             c.g = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
-            c.r = 1;
+            c.r = 0;
             m_SSAONoisePattern.setPixel(x,y,c);
         }
 

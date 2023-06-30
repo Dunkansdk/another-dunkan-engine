@@ -46,6 +46,10 @@ bool game_entities(EntityManager& entity_manager) {
     texture_manager.load(std::string("Sarco-Depth"), std::string("data/sarco_height.png"));
     texture_manager.load(std::string("Sarco-Normal"), std::string("data/sarco_normal.png"));
 
+    texture_manager.load(std::string("Torusb-Albedo"), std::string("data/torusb_albedo.png"));
+    texture_manager.load(std::string("Torusb-Depth"), std::string("data/torusb_height.png"));
+    texture_manager.load(std::string("Torusb-Normal"), std::string("data/torusb_normal.png"));
+
     Entity& entity1 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{
             .x = 350.f,
@@ -87,7 +91,7 @@ bool game_entities(EntityManager& entity_manager) {
     entity_manager.add_component<LightComponent>(entity3, LightComponent{
             .light_type = LightType::DIRECTIONAL,
             .diffuse_color = sf::Color(255,255,224),
-            .direction = sf::Vector3f(-1,-.2,-1),
+            .direction = sf::Vector3f(-1,.2,-1),
             .intensity = 5.0f
         });
 
@@ -96,14 +100,14 @@ bool game_entities(EntityManager& entity_manager) {
     entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
             .x = 500.f,
             .y = 200.f,
-            .z = 3.f
+            .z = 15.f
         });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
             .light_type = LightType::SPOT,
             .diffuse_color = sf::Color(255,190,64),
             .direction = sf::Vector3f(0, 1.0, 0),
             .radius = 3.0f,
-            .intensity = 10.0f
+            .intensity = 20.0f
         });
 
     Entity& entity5 = entity_manager.create_entity();
@@ -130,13 +134,15 @@ bool game_entities(EntityManager& entity_manager) {
             .z = -.65f
         });
     entity_manager.add_component<RenderComponent>(entity6, RenderComponent{
-            texture_manager.get("Torus-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Torus-Albedo").getSize().x, texture_manager.get("Torus-Albedo").getSize().y),
+            texture_manager.get("Torusb-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Torusb-Albedo").getSize().x, texture_manager.get("Torusb-Albedo").getSize().y),
             40.f,
             1.f,
-            texture_manager.get("Torus-Normal"), 
-            texture_manager.get("Torus-Depth"), 
-            texture_manager.get("Torus-Material")
+            texture_manager.get("Torusb-Normal"), 
+            texture_manager.get("Torusb-Depth"), 
+            0.5f,
+            0.0f,
+            0.0f
         }).load();
 
     Entity& entity7 = entity_manager.create_entity();
