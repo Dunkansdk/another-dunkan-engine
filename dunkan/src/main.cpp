@@ -40,7 +40,7 @@ bool game_entities(EntityManager& entity_manager) {
     texture_manager.load(std::string("Wetsand-Albedo"), std::string("data/wetsand_albedo.png"));
     texture_manager.load(std::string("Wetsand-Depth"), std::string("data/wetsand_height.png"));
     texture_manager.load(std::string("Wetsand-Normal"), std::string("data/wetsand_normal.png"));
-    texture_manager.load(std::string("Wetsand-Material"), std::string("data/wetsand_normal.png"));
+    texture_manager.load(std::string("Wetsand-Material"), std::string("data/wetsand_material.png"));
 
     texture_manager.load(std::string("Sarco-Albedo"), std::string("data/sarco_albedo.png"));
     texture_manager.load(std::string("Sarco-Depth"), std::string("data/sarco_height.png"));
@@ -62,7 +62,10 @@ bool game_entities(EntityManager& entity_manager) {
             460.f,
             1.f,
             texture_manager.get("Abbey-Normal"), 
-            texture_manager.get("Abbey-Depth")
+            texture_manager.get("Abbey-Depth"),
+            0.7f,
+            0.0f,
+            0.0f
         }).load();
 
     Entity& entity2 = entity_manager.create_entity();
@@ -100,12 +103,12 @@ bool game_entities(EntityManager& entity_manager) {
     entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
             .x = 500.f,
             .y = 200.f,
-            .z = 15.f
+            .z = 50.f
         });
     entity_manager.add_component<LightComponent>(entity4, LightComponent{
             .light_type = LightType::SPOT,
-            .diffuse_color = sf::Color(255,190,64),
-            .direction = sf::Vector3f(0, 1.0, 0),
+            .diffuse_color = sf::Color(160,96,160),
+            .direction = sf::Vector3f(0.0f, 0.0f, -1.0f),
             .radius = 3.0f,
             .intensity = 20.0f
         });
@@ -140,8 +143,8 @@ bool game_entities(EntityManager& entity_manager) {
             1.f,
             texture_manager.get("Torusb-Normal"), 
             texture_manager.get("Torusb-Depth"), 
-            0.5f,
-            0.0f,
+            0.6f,
+            1.0f,
             0.0f
         }).load();
 
@@ -173,7 +176,10 @@ bool game_entities(EntityManager& entity_manager) {
             85.f,
             1.f,
             texture_manager.get("Sarco-Normal"), 
-            texture_manager.get("Sarco-Depth")
+            texture_manager.get("Sarco-Depth"),
+            0.4f,
+            0.0f,
+            0.0f
         }).load();
 
     Configuration::load(entity_manager);
@@ -224,14 +230,16 @@ void update(sf::RenderWindow& window) {
                     window.setView(sf::View(visible_area));
                 }
 
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Z))
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
                         render_system.debug_screen = 0;
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::X))
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
                         render_system.debug_screen = 1;
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::C))
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
                         render_system.debug_screen = 2;
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::V))
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4))
                         render_system.debug_screen = 3;
+                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5))
+                        render_system.debug_screen = 4;
 
 #ifdef DEBUG_IMGUI
                 ImGui::SFML::ProcessEvent(window, event);
@@ -251,6 +259,7 @@ void update(sf::RenderWindow& window) {
             if (ImGui::Button("Gamma Correction")) {
                 render_system.enable_gamma_correction(!Configuration::get()->enable_SRGB);
             }
+            ImGui::DragFloat("Exposure", &Configuration::get()->exposure, .01f);
             ImGui::End();
             debug_system.update(entity_manager);
 #endif

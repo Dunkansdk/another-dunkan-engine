@@ -7,9 +7,11 @@ struct ConfigurationComponent {
     bool enable_SSAO{true};
     bool enable_SRGB{false};
 
+    float exposure{.8f};    
+
     int debug_screen{0};
 
-    sf::Color ambient_light{sf::Color{ 64, 64, 96 }};
+    sf::Color ambient_light{sf::Color{ 24, 24, 32 }};
     sf::Color ambient_light_srgb{sf::Color{ 32, 32, 48 }};
 
 };

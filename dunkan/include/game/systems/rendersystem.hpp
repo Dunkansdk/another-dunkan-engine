@@ -253,10 +253,11 @@ const std::string lighting_fragShader = \
     "       gl_FragColor.rgb *= occlusion;"
 	"   };"
     "   if(debug_screen == 1) { gl_FragColor.rgb = color_pixel.rgb; }"
-    "   if(debug_screen == 2) { gl_FragColor.rgb = material_pixel.rgb; }"
+    "   if(debug_screen == 2) { gl_FragColor.rgb = normal_pixel.rgb; }"
     "   if(debug_screen == 3) {"
     "       gl_FragColor.rgb = vec3(height_pixel * 0.001, height_pixel * 0.001, height_pixel * 0.001);" \
     "   }"
+    "   if(debug_screen == 4) { gl_FragColor.rgb = material_pixel.rgb; }"
     "}";
 
 const std::string SSAO_fragShader = \
@@ -305,6 +306,7 @@ struct RenderSystem {
      * 1 - Albedo
      * 2 - Normal
      * 3 - Depth
+     * 4 - Material
      **/
     int debug_screen{0};
 
@@ -331,7 +333,6 @@ struct RenderSystem {
         m_pbrShader.loadFromMemory(pbr_fragShader, sf::Shader::Fragment);
         light_system.get_light_shader()->loadFromMemory(vertexShader, lighting_fragShader);
         light_system.get_light_shader()->setUniform("ambient_light", sf::Glsl::Vec4(Configuration::get()->ambient_light));
-        light_system.get_light_shader()->setUniform("p_exposure", .5f);
         light_system.get_light_shader()->setUniform("enable_sRGB", Configuration::get()->enable_SRGB);
         
         ImGui::SFML::Init(window, m_colorScreen, true);
@@ -398,7 +399,7 @@ struct RenderSystem {
             sf::Color c = sf::Color::White;
             c.r = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
             c.g = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
-            c.r = 0;
+            c.b = (int)(static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/255)));;
             m_SSAONoisePattern.setPixel(x,y,c);
         }
 
@@ -422,6 +423,7 @@ struct RenderSystem {
         light_system.calculate_lights(entity_manager, view_shift, current_view, m_colorScreen.getSize());
         light_system.get_light_shader()->setUniform("view_shift",view_shift);
         light_system.get_light_shader()->setUniform("view_pos", sf::Vector3f(current_view.getCenter().x, current_view.getCenter().y, 750.0f));
+        light_system.get_light_shader()->setUniform("p_exposure", Configuration::get()->exposure);
 
         m_colorScreen.setActive(true);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -549,11 +551,6 @@ struct RenderSystem {
 
     void enable_gamma_correction(bool value) {
         Configuration::get()->enable_SRGB = value;
-        if(value) {
-            light_system.get_light_shader()->setUniform("ambient_light", sf::Glsl::Vec4(Configuration::get()->ambient_light_srgb));
-        } else {
-            light_system.get_light_shader()->setUniform("ambient_light", sf::Glsl::Vec4(Configuration::get()->ambient_light));
-        }
         light_system.get_light_shader()->setUniform("enable_sRGB", value);
     }
 

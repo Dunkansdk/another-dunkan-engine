@@ -50,8 +50,8 @@ struct DebugSystem {
                     ImGui::DragFloat("Y", &physics.y, 1.0f);
                     ImGui::DragFloat("Z", &physics.z, 1.0f);
                 }
-                // ImGui::SliderFloat("Radius", &light.radius, 0.0f, 80.f);
-                // ImGui::SliderFloat("Intensity", &light.intensity, 0.f, 100.f);
+                ImGui::SliderFloat("Radius", &light.radius, 0.0f, 10.f);
+                ImGui::SliderFloat("Intensity", &light.intensity, 0.f, 100.f);
                 
                 ImGui::TreePop();
             }
