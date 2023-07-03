@@ -11,7 +11,7 @@ struct ConfigurationComponent {
 
     int debug_screen{0};
 
-    sf::Color ambient_light{sf::Color{ 24, 24, 32 }};
+    sf::Color ambient_light{sf::Color{ 24,24,32 }};
     sf::Color ambient_light_srgb{sf::Color{ 32, 32, 48 }};
 
 };

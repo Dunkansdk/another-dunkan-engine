@@ -21,6 +21,8 @@
 #include "game/types.hpp"
 #include "utils/Configuration.hpp"
 
+#define PI 3.14159265
+
 using RenderSystem_c = ADE::META_TYPES::Typelist<RenderComponent, PhysicsComponent>;
 using RenderSystem_t = ADE::META_TYPES::Typelist<>;
 
@@ -67,7 +69,7 @@ const std::string pbr_fragShader = \
     "void main()" \
     "{" \
     "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
-    "   vec4 material_pixel = vec4(p_roughness,p_metalness,p_translucency,color_pixel.a);"
+    "   vec4 material_pixel = vec4(p_roughness,p_metalness,p_translucency, color_pixel.a);"
     "   if(enable_materialMap){"
     "       material_pixel = texture2D(material_map, gl_TexCoord[0].xy);"
     "   }"
@@ -77,8 +79,8 @@ const std::string pbr_fragShader = \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    "   if(color_pixel.a < .9)"
-    "       color_pixel.a = 0;"
+    // "   if(color_pixel.a < .9)"
+    // "       color_pixel.a = 0.0;"
     "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);" \
     "   gl_FragColor = gl_Color * material_pixel; " \
     "}";
@@ -148,13 +150,18 @@ const std::string lighting_fragShader = \
     "varying vec3 vertex; "\
     "uniform int debug_screen; "\
     "uniform bool enable_sRGB;" \
-        ""
+    ""
     " const float PI = 3.14159265359;"
     ""
     "vec3 fresnelSchlick(float cosTheta, vec3 F0)"
     "{"
     "    return F0 + (1.0 - F0) * pow(1 - cosTheta, 5.0);"
     "}"
+    ""
+    "vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)"
+    "{"
+    "    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);"
+    "}   "
     ""
     "float DistributionGGX(vec3 N, vec3 H, float roughness)"
     "{"
@@ -200,7 +207,12 @@ const std::string lighting_fragShader = \
     "   vec3 view_direction = normalize(view_pos - frag_pos);"
     "   vec3 surfaceReflection0 = vec3(0.04);"
     "   surfaceReflection0 = mix(surfaceReflection0, color_pixel.rgb, material_pixel.g);"
-    "   gl_FragColor = gl_Color * ambient_light * color_pixel; "
+    "   float FAmbient = fresnelSchlickRoughness(max(dot(direction, view_direction), 0.0), surfaceReflection0, material_pixel.r);"
+    "   vec3 kSAmbient = FAmbient;"
+    "   vec3 kDAmbient = (1.0 - kSAmbient) * (1.0 - material_pixel.g);"
+    "   vec3 irradianceAmbient = ambient_light.rgb * ambient_light.a;"
+    "   gl_FragColor.rgb = (color_pixel.rgb  * kDAmbient + kSAmbient)* irradianceAmbient; "
+    "   gl_FragColor.a = color_pixel.a; "
     "   for(int i = 0 ; i < nbr_lights ; ++i)" \
 	"   {" \
     "       float attenuation = 0.0;" \
@@ -213,11 +225,11 @@ const std::string lighting_fragShader = \
 	"	    else" \
 	"	    {" \
 	"	    	light_direction = gl_LightSource[i].position.xyz - frag_pos.xyz;" \
-    "	    	float dist = length(light_direction) / 100.0;" \
+    "	    	float dist = length(light_direction) * 0.01;" \
 	"           float dr = dist / gl_LightSource[i].constantAttenuation;"
 	"           float sqrtnom = 1.0 - dr*dr*dr*dr;"
     "           if(sqrtnom >= 0.0)"
-	"           attenuation = saturate(sqrtnom*sqrtnom/(dist*dist+1));"
+	"               attenuation = saturate(sqrtnom * sqrtnom / (dist * dist + 1.0));"
 	"	    }" \
     "	    light_direction = normalize(light_direction);" \
     "       vec3 halfwayVector = normalize(view_direction + light_direction);"
@@ -283,14 +295,14 @@ const std::string SSAO_fragShader = \
 	"   vec3 t = normalize(rVec - direction * dot(rVec, direction));" 
 	"   mat3 rot = mat3(t, cross(direction,t), direction);"
 	"   for(int i =0 ; i < 16 ; ++i){"
-	"       vec3 decal = rot * samples_hemisphere[i] * 20.0;"
+	"       vec3 decal = rot * samples_hemisphere[i] * 15.0;"
 	"       vec3 screen_decal = decal;"
 	"       screen_decal.y *= -1.0;"
 	"       vec3 screen_pos = gl_FragCoord.xyz  + screen_decal;"
 	"       vec3 occl_depth_pixel = texture2D(depth_map, (screen_pos.xy) * screen_ratio).rgb;"
 	"       float occl_height = (0.5 - (occl_depth_pixel.r + occl_depth_pixel.g / 256.0 + occl_depth_pixel.b / 65536.0)) * 1000.0;"
-    "       if(occl_height > (frag_pos.z+decal.z) + 1.0"
-    "        && occl_height - (frag_pos.z+decal.z) < 20.0)"
+    "       if(occl_height > (frag_pos.z+decal.z) + 0.1"
+    "        && occl_height - (frag_pos.z+decal.z) < 15.0)"
     "           occlusion += 1.0;"
 	"   } "
     "   float color_rgb = 1.0 - occlusion / 12.0;" \
@@ -407,8 +419,6 @@ struct RenderSystem {
         m_SSAONoiseTexture.loadFromImage(m_SSAONoisePattern);
         m_SSAOShader.setUniform("noise_map",m_SSAONoiseTexture);
     }
-
-    sf::Shader* tmp_shader = nullptr;
 
     void update(EntityManager& entity_manager, sf::RenderWindow& window) {
 

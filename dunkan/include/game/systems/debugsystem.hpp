@@ -26,9 +26,9 @@ struct DebugSystem {
                 ImGui::DragFloat("Z", &physics.z, .01f);
                 ImGui::DragFloat("Height", &render.height, .5f);
                 ImGui::DragFloat("Scale", &render.scale, .01f);
-                ImGui::DragFloat("Roughness", &render.roughness, .01f);
-                ImGui::DragFloat("Metalness", &render.metalness, .01f);
-                ImGui::DragFloat("Translucency", &render.translucency, .01f);
+                ImGui::SliderFloat("Roughness", &render.roughness, 0.0f, 1.0f);
+                ImGui::SliderFloat("Metalness", &render.metalness, 0.0f, 1.0f);
+                ImGui::SliderFloat("Translucency", &render.translucency, 0.0f, 1.0f);
                 ImGui::TreePop();
             }
         });
@@ -42,9 +42,9 @@ struct DebugSystem {
                     // if (ImGui::Button("Recalculate Direction")) {
                     //     light.require_shadow_computation = true;
                     // }
-                    ImGui::SliderFloat("Direction X", &light.direction.x, -1.0f, 1.0f);
-                    ImGui::SliderFloat("Direction Y", &light.direction.y, -1.0f, 1.0f);
-                    ImGui::SliderFloat("Direction Z", &light.direction.z, -1.0f, 0.0f);
+                    ImGui::SliderFloat("Direction X", &light.direction.x, -2.0f, 1.0f);
+                    ImGui::SliderFloat("Direction Y", &light.direction.y, -2.0f, 1.0f);
+                    ImGui::SliderFloat("Direction Z", &light.direction.z, -2.0f, 0.0f);
                 } else {
                     ImGui::DragFloat("X", &physics.x, 1.0f);
                     ImGui::DragFloat("Y", &physics.y, 1.0f);

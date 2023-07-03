@@ -19,9 +19,7 @@ unsigned int m_frame;
 unsigned int m_fps;
 sf::Clock m_clock;
 
-bool game_entities(EntityManager& entity_manager) {
-
-    TextureManager texture_manager {};
+bool game_entities(EntityManager& entity_manager, TextureManager& texture_manager) {
 
     texture_manager.load(std::string("Abbey-Albedo"), std::string("data/abbey_albedo.png"));
     texture_manager.load(std::string("Abbey-Depth"), std::string("data/abbey_height.png"));
@@ -49,6 +47,8 @@ bool game_entities(EntityManager& entity_manager) {
     texture_manager.load(std::string("Torusb-Albedo"), std::string("data/torusb_albedo.png"));
     texture_manager.load(std::string("Torusb-Depth"), std::string("data/torusb_height.png"));
     texture_manager.load(std::string("Torusb-Normal"), std::string("data/torusb_normal.png"));
+
+    texture_manager.load(std::string("brd-flut"), std::string("data/ibl_brdf_lut.png"));
 
     Entity& entity1 = entity_manager.create_entity();
     entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{
@@ -202,8 +202,9 @@ void update(sf::RenderWindow& window) {
     DebugSystem debug_system {}; 
     CameraSystem camera_system {};
     MoveEntitySystem move_entity_system {};
+    TextureManager texture_manager {};
 
-    if(game_entities(entity_manager)) {
+    if(game_entities(entity_manager, texture_manager)) {
 
         if(!render_load) {
             render_system.init_renderer(window);
