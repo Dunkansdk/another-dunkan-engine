@@ -48,6 +48,14 @@ bool game_entities(EntityManager& entity_manager, TextureManager& texture_manage
     texture_manager.load(std::string("Torusb-Depth"), std::string("data/torusb_height.png"));
     texture_manager.load(std::string("Torusb-Normal"), std::string("data/torusb_normal.png"));
 
+    texture_manager.load(std::string("Untilted-Albedo"), std::string("data/untitled_albedo.png"));
+    texture_manager.load(std::string("Untilted-Depth"), std::string("data/untitled_height.png"));
+    texture_manager.load(std::string("Untilted-Normal"), std::string("data/untitled_normal.png"));
+
+    texture_manager.load(std::string("Teapot-Albedo"), std::string("data/teapot_albedo.png"));
+    texture_manager.load(std::string("Teapot-Depth"), std::string("data/teapot_height.png"));
+    texture_manager.load(std::string("Teapot-Normal"), std::string("data/teapot_normal.png"));
+
     texture_manager.load(std::string("brd-flut"), std::string("data/ibl_brdf_lut.png"));
 
     Entity& entity1 = entity_manager.create_entity();
@@ -110,7 +118,7 @@ bool game_entities(EntityManager& entity_manager, TextureManager& texture_manage
             .diffuse_color = sf::Color(160,96,160),
             .direction = sf::Vector3f(0.0f, 0.0f, -1.0f),
             .radius = 3.0f,
-            .intensity = 20.0f
+            .intensity = 30.0f
         });
 
     Entity& entity5 = entity_manager.create_entity();
@@ -171,12 +179,12 @@ bool game_entities(EntityManager& entity_manager, TextureManager& texture_manage
             .z = .5f
         });
     entity_manager.add_component<RenderComponent>(entity8, RenderComponent{
-            texture_manager.get("Sarco-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Sarco-Albedo").getSize().x, texture_manager.get("Sarco-Albedo").getSize().y),
-            85.f,
+            texture_manager.get("Teapot-Albedo"), 
+            sf::IntRect(0, 0, texture_manager.get("Teapot-Albedo").getSize().x, texture_manager.get("Teapot-Albedo").getSize().y),
+            300.f,
             1.f,
-            texture_manager.get("Sarco-Normal"), 
-            texture_manager.get("Sarco-Depth"),
+            texture_manager.get("Teapot-Normal"), 
+            texture_manager.get("Teapot-Depth"),
             0.4f,
             0.0f,
             0.0f

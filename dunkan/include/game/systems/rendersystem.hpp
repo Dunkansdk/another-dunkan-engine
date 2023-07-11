@@ -75,12 +75,12 @@ const std::string pbr_fragShader = \
     "   }"
     "   float height_pixel = 0.0; "
     "   if(useDepthMap == true){"
-    "        vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
+    "       vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
     "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
     "   }"
     "   float z_pixel = height_pixel + z_position;" \
-    // "   if(color_pixel.a < .9)"
-    // "       color_pixel.a = 0.0;"
+    "   if(color_pixel.a < 0.9)"
+    "       color_pixel.a = 0.0;"
     "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);" \
     "   gl_FragColor = gl_Color * material_pixel; " \
     "}";
@@ -245,8 +245,7 @@ const std::string lighting_fragShader = \
     "       vec3 specular     = nominator / max(denominator, 0.01);"
     "       float NdotL       = max(dot(direction, light_direction), 0.0);"
 	"	    gl_FragColor.rgb += (kD * color_pixel.rgb / PI + specular) * radiance * NdotL;"
-	"       float t = material_pixel.b;"
-	"	    gl_FragColor.rgb -= (color_pixel.rgb/ PI) * radiance * min(dot(direction, light_direction), 0.0) * t;"
+	"	    gl_FragColor.rgb -= (color_pixel.rgb/ PI) * radiance * min(dot(direction, light_direction), 0.0) * material_pixel.b * 1.0;"
 	"   }"
     "   gl_FragColor.rgb = vec3(1.0) - exp(-gl_FragColor.rgb * p_exposure);"
     "   if(enable_sRGB == true)"
@@ -295,14 +294,14 @@ const std::string SSAO_fragShader = \
 	"   vec3 t = normalize(rVec - direction * dot(rVec, direction));" 
 	"   mat3 rot = mat3(t, cross(direction,t), direction);"
 	"   for(int i =0 ; i < 16 ; ++i){"
-	"       vec3 decal = rot * samples_hemisphere[i] * 15.0;"
+	"       vec3 decal = rot * samples_hemisphere[i] * 20.0;"
 	"       vec3 screen_decal = decal;"
 	"       screen_decal.y *= -1.0;"
 	"       vec3 screen_pos = gl_FragCoord.xyz  + screen_decal;"
 	"       vec3 occl_depth_pixel = texture2D(depth_map, (screen_pos.xy) * screen_ratio).rgb;"
 	"       float occl_height = (0.5 - (occl_depth_pixel.r + occl_depth_pixel.g / 256.0 + occl_depth_pixel.b / 65536.0)) * 1000.0;"
-    "       if(occl_height > (frag_pos.z+decal.z) + 0.1"
-    "        && occl_height - (frag_pos.z+decal.z) < 15.0)"
+    "       if(occl_height > (frag_pos.z+decal.z) + 1.0"
+    "        && occl_height - (frag_pos.z+decal.z) < 20.0)"
     "           occlusion += 1.0;"
 	"   } "
     "   float color_rgb = 1.0 - occlusion / 12.0;" \
@@ -411,7 +410,7 @@ struct RenderSystem {
             sf::Color c = sf::Color::White;
             c.r = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
             c.g = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
-            c.b = (int)(static_cast <float> (rand()) /( static_cast <float> (RAND_MAX/255)));;
+            c.b = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
             m_SSAONoisePattern.setPixel(x,y,c);
         }
 
@@ -432,7 +431,7 @@ struct RenderSystem {
 
         light_system.calculate_lights(entity_manager, view_shift, current_view, m_colorScreen.getSize());
         light_system.get_light_shader()->setUniform("view_shift",view_shift);
-        light_system.get_light_shader()->setUniform("view_pos", sf::Vector3f(current_view.getCenter().x, current_view.getCenter().y, 750.0f));
+        light_system.get_light_shader()->setUniform("view_pos", sf::Vector3f(view_shift.x, view_shift.y, 750.0f));
         light_system.get_light_shader()->setUniform("p_exposure", Configuration::get()->exposure);
 
         m_colorScreen.setActive(true);

@@ -75,8 +75,8 @@ struct MoveEntitySystem {
                 if(render.moveable && selected.id == entity.get_id()) {
                     if(!render.is_selected) render.is_selected = true;
                     // Move entity
-                    physics.x = x - (render.m_texture->getSize().x / 2);
-                    physics.y = y - (render.m_texture->getSize().y / 2) + physics.z;
+                    physics.x = x - (render.m_texture->getSize().x * render.scale / 2);
+                    physics.y = y - (render.m_texture->getSize().y * render.scale / 2) + physics.z;
 
                     // Zoom event
                     if(event.type == sf::Event::MouseWheelScrolled) {
