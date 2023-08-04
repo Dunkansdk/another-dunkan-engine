@@ -26,289 +26,6 @@
 using RenderSystem_c = ADE::META_TYPES::Typelist<RenderComponent, PhysicsComponent>;
 using RenderSystem_t = ADE::META_TYPES::Typelist<>;
 
-const std::string vertexShader = \
-    "varying vec3 vertex; "\
-    "void main() "\
-    "{ "\
-    "    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; "\
-    "    vertex = (gl_ModelViewMatrix*gl_Vertex).xyz; "\
-    "    gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0; "\
-    "    gl_FrontColor = gl_Color; "\
-    "}";
-
-const std::string color_fragShader = \
-    "uniform sampler2D color_map;" \
-    "uniform bool useDepthMap;" \
-    "uniform sampler2D depth_map;" \
-    "uniform float height;" \
-    "uniform float z_position;" \
-    "void main()" \
-    "{" \
-    "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
-    "   float height_pixel = 0.0; "
-    "   if(useDepthMap == true){"
-    "        vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
-    "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
-    "   }"
-    "   float z_pixel = height_pixel + z_position;" \
-    "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);" \
-    "   gl_FragColor = gl_Color * color_pixel; " \
-    "}";
-
-const std::string pbr_fragShader = \
-    "uniform sampler2D color_map;" \
-    "uniform bool useDepthMap;" \
-    "uniform sampler2D depth_map;" \
-    "uniform sampler2D material_map;" \
-    "uniform float height;" \
-    "uniform bool enable_materialMap;" \
-    "uniform float z_position;" \
-    "uniform float p_roughness;" \
-    "uniform float p_metalness;" \
-    "uniform float p_translucency;" \
-    "void main()" \
-    "{" \
-    "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
-    "   vec4 material_pixel = vec4(p_roughness,p_metalness,p_translucency, color_pixel.a);"
-    "   if(enable_materialMap){"
-    "       material_pixel = texture2D(material_map, gl_TexCoord[0].xy);"
-    "   }"
-    "   float height_pixel = 0.0; "
-    "   if(useDepthMap == true){"
-    "       vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
-    "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
-    "   }"
-    "   float z_pixel = height_pixel + z_position;" \
-    "   if(color_pixel.a < 0.9)"
-    "       color_pixel.a = 0.0;"
-    "   gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);" \
-    "   gl_FragColor = gl_Color * material_pixel; " \
-    "}";
-
-const std::string depth_fragShader = \
-    "uniform sampler2D color_map;" \
-    "uniform bool useDepthMap;" \
-    "uniform sampler2D depth_map;" \
-    "uniform float height;" \
-    "uniform float z_position;" \
-    "void main()" \
-    "{" \
-    "   float color_alpha = texture2D(color_map, gl_TexCoord[0].xy).a;" \
-    "   float height_pixel = 0.0; "
-    "   if(useDepthMap == true){"
-    "       vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
-    "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
-    "   }"
-    "   float z_pixel = height_pixel + z_position;" \
-    "   gl_FragDepth = 1.0 - color_alpha * (0.5 + z_pixel * 0.001);" \
-    "   gl_FragColor.r = gl_FragDepth;" \
-    "   gl_FragColor.g = (gl_FragDepth - floor(gl_FragDepth * 256.0) / 256.0) * 256.0;" \
-    "   gl_FragColor.b = (gl_FragDepth - floor(gl_FragDepth * (65536.0)) / 65536.0) * 65536.0;" \
-    "   gl_FragColor.a = color_alpha;" \
-    "}";
-
-const std::string normal_fragShader = \
-    "uniform sampler2D color_map;" \
-    "uniform bool useDepthMap;" \
-    "uniform sampler2D depth_map;" \
-    "uniform bool useNormalMap;" \
-    "uniform sampler2D normal_map;" \
-    "uniform float height;" \
-    "uniform float z_position;" \
-    "void main()" \
-    "{" \
-    "   float color_alpha = texture2D(color_map, gl_TexCoord[0].xy).a;" \
-	"	vec3 direction = vec3(0.0, 0.0, 1.0);"
-	"   if(useNormalMap){"
-	"       direction = -1.0 + 2.0 * texture2D(normal_map, gl_TexCoord[0].xy).rgb;"
-	"   }"
-    "   float height_pixel = 0.0; "
-    "   if(useDepthMap){"
-    "       vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
-    "       height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) *.33 * height;"
-    "   }"
-    "   float z_pixel = height_pixel + z_position;" \
-    "   gl_FragDepth = 1.0 - color_alpha * (0.5 + z_pixel * 0.001);" \
-    "   gl_FragColor.rgb = 0.5 + direction * 0.5;" \
-    "   gl_FragColor.a = color_alpha;" \
-    "}";
-
-const std::string lighting_fragShader = \
-    "uniform sampler2D color_map;" \
-    "uniform sampler2D normal_map;" \
-    "uniform sampler2D depth_map;" \
-    "uniform sampler2D material_map;" \
-    "uniform bool useSSAO;" \
-    "uniform sampler2D SSAOMap;" \
-    "uniform float z_position;" \
-    "uniform vec4 ambient_light;" \
-    "uniform int nbr_lights;" \
-    "uniform vec2 screen_ratio;" \
-    "uniform vec2 view_shift;" \
-    "uniform vec3 view_pos;" \
-    "uniform float p_exposure;" \
-    "varying vec3 vertex; "\
-    "uniform int debug_screen; "\
-    "uniform bool enable_sRGB;" \
-    ""
-    " const float PI = 3.14159265359;"
-    ""
-    "vec3 fresnelSchlick(float cosTheta, vec3 F0)"
-    "{"
-    "    return F0 + (1.0 - F0) * pow(1 - cosTheta, 5.0);"
-    "}"
-    ""
-    "vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)"
-    "{"
-    "    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);"
-    "}   "
-    ""
-    "float DistributionGGX(vec3 N, vec3 H, float roughness)"
-    "{"
-    "    float a      = roughness*roughness;"
-    "    float a2     = a*a;"
-    "    float NdotH  = max(dot(N, H), 0.0);"
-    "    float NdotH2 = NdotH*NdotH;"
-    "    float nom   = a2;"
-    "    float denom = (NdotH2 * (a2 - 1.0) + 1.0);"
-    "    denom = PI * denom * denom;"
-    "    return nom / denom;"
-    "}"
-    "float GeometrySchlickGGX(float NdotV, float roughness)"
-    "{"
-    "    float r = (roughness + 1.0);"
-    "    float k = (r*r) / 8.0;"
-    "    float nom   = NdotV;"
-    "    float denom = NdotV * (1.0 - k) + k;"
-    "    return nom / denom;"
-    "}"
-    "float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)"
-    "{"
-    "    float NdotV = max(dot(N, V), 0.0);"
-    "    float NdotL = max(dot(N, L), 0.0);"
-    "    float ggx2  = GeometrySchlickGGX(NdotV, roughness);"
-    "    float ggx1  = GeometrySchlickGGX(NdotL, roughness);"
-    "    return ggx1 * ggx2;"
-    "}"
-    ""
-    "void main()" \
-    "{" \
-    "   vec4 color_pixel = texture2D(color_map, gl_TexCoord[0].xy);" \
-    "   vec4 normal_pixel = texture2D(normal_map, gl_TexCoord[0].xy);" \
-    "   vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
-    "   vec4 material_pixel = texture2D(material_map, gl_TexCoord[0].xy);"
-    "   vec3 direction = -1.0 + 2.0 * normal_pixel.rgb;"
-    "   if(enable_sRGB == true)"
-	"       color_pixel.rgb = pow(color_pixel.rgb, vec3(2.2));"
-    "   float height_pixel = (0.5 - (depth_pixel.r+depth_pixel.g / 256.0+depth_pixel.b / 65536.0)) * 1000.0;"
-	"   vec3 frag_pos = vertex + vec3(view_shift.xy, 0);"
-	"   frag_pos.y -= height_pixel;"
-	"   frag_pos.z = height_pixel;"
-    "   vec3 view_direction = normalize(view_pos - frag_pos);"
-    "   vec3 surfaceReflection0 = vec3(0.04);"
-    "   surfaceReflection0 = mix(surfaceReflection0, color_pixel.rgb, material_pixel.g);"
-    "   float FAmbient = fresnelSchlickRoughness(max(dot(direction, view_direction), 0.0), surfaceReflection0, material_pixel.r);"
-    "   vec3 kSAmbient = FAmbient;"
-    "   vec3 kDAmbient = (1.0 - kSAmbient) * (1.0 - material_pixel.g);"
-    "   vec3 irradianceAmbient = ambient_light.rgb * ambient_light.a;"
-    "   gl_FragColor.rgb = (color_pixel.rgb  * kDAmbient + kSAmbient)* irradianceAmbient; "
-    "   gl_FragColor.a = color_pixel.a; "
-    "   for(int i = 0 ; i < nbr_lights ; ++i)" \
-	"   {" \
-    "       float attenuation = 0.0;" \
-	"       vec3 light_direction = vec3(0,0,0);"
-	"	    if(gl_LightSource[i].position.w == 0.0)" \
-	"	    {		" \
-	"	    	light_direction = -gl_LightSource[i].position.xyz;" \
-    "           attenuation = 1.0;"
-	"	    }" \
-	"	    else" \
-	"	    {" \
-	"	    	light_direction = gl_LightSource[i].position.xyz - frag_pos.xyz;" \
-    "	    	float dist = length(light_direction) * 0.01;" \
-	"           float dr = dist / gl_LightSource[i].constantAttenuation;"
-	"           float sqrtnom = 1.0 - dr*dr*dr*dr;"
-    "           if(sqrtnom >= 0.0)"
-	"               attenuation = saturate(sqrtnom * sqrtnom / (dist * dist + 1.0));"
-	"	    }" \
-    "	    light_direction = normalize(light_direction);" \
-    "       vec3 halfwayVector = normalize(view_direction + light_direction);"
-    "       vec3 radiance = gl_LightSource[i].diffuse * attenuation; "
-    "       float NDF = DistributionGGX(direction, halfwayVector, material_pixel.r); "
-    "       float G   = GeometrySmith(direction, view_direction, light_direction, material_pixel.r);"
-    "       vec3 F    = fresnelSchlick(max(dot(halfwayVector, view_direction), 0.0), surfaceReflection0); "
-    "       vec3 kS = F;"
-    "       vec3 kD = vec3(1.0) - kS;"
-    "       kD *= 1.0 - material_pixel.g;"
-    "       vec3 nominator    = NDF * G * F;"
-    "       float denominator = 4.0 * max(dot(direction, view_direction), 0.0) * max(dot(direction, light_direction), 0.0);"
-    "       vec3 specular     = nominator / max(denominator, 0.01);"
-    "       float NdotL       = max(dot(direction, light_direction), 0.0);"
-	"	    gl_FragColor.rgb += (kD * color_pixel.rgb / PI + specular) * radiance * NdotL;"
-	"	    gl_FragColor.rgb -= (color_pixel.rgb/ PI) * radiance * min(dot(direction, light_direction), 0.0) * material_pixel.b * 1.0;"
-	"   }"
-    "   gl_FragColor.rgb = vec3(1.0) - exp(-gl_FragColor.rgb * p_exposure);"
-    "   if(enable_sRGB == true)"
-	"       gl_FragColor.rgb = pow(gl_FragColor.rgb, vec3(1.0/2.2));"
-    "   if(useSSAO == true) {"
-	"       float occlusion  = (texture2D(SSAOMap, gl_TexCoord[0].xy + vec2(0,0) * screen_ratio).b * 4.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(1,0)) * screen_ratio).b * 2.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(-1,0)) * screen_ratio).b * 2.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(0,2)) * screen_ratio).b * 2.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(0,-2)) * screen_ratio).b * 2.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(1,2)) * screen_ratio).b * 1.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(1,-2)) * screen_ratio).b * 1.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(-1,-2)) * screen_ratio).b * 1.0"
- 	"                      + texture2D(SSAOMap, gl_TexCoord[0].xy + (vec2(1,-2)) * screen_ratio).b * 1.0"
-	"                       ) / 16.0;"
-    "       gl_FragColor.rgb *= occlusion;"
-	"   };"
-    "   if(debug_screen == 1) { gl_FragColor.rgb = color_pixel.rgb; }"
-    "   if(debug_screen == 2) { gl_FragColor.rgb = normal_pixel.rgb; }"
-    "   if(debug_screen == 3) {"
-    "       gl_FragColor.rgb = vec3(height_pixel * 0.001, height_pixel * 0.001, height_pixel * 0.001);" \
-    "   }"
-    "   if(debug_screen == 4) { gl_FragColor.rgb = material_pixel.rgb; }"
-    "}";
-
-const std::string SSAO_fragShader = \
-    "uniform sampler2D normal_map;" \
-    "uniform sampler2D depth_map;" \
-    "uniform sampler2D noise_map;" \
-    "uniform float z_position;" \
-    "uniform vec2 screen_ratio;" \
-    "uniform float zoom;"
-    "uniform vec3 samples_hemisphere[16];"
-    "varying vec3 vertex; "\
-    "void main()" \
-    "{" \
-    "   vec4 normal_pixel = texture2D(normal_map, gl_TexCoord[0].xy);" \
-    "   vec4 depth_pixel = texture2D(depth_map, gl_TexCoord[0].xy);" \
-    "   vec3 direction = -1.0 + 2.0 * texture2D(normal_map, gl_TexCoord[0].xy).rgb;" \
-    "   float height_pixel = (0.5 - (depth_pixel.r + depth_pixel.g / 256.0+depth_pixel.b / 65536.0)) * 1000.0;" \
-	"   vec3 frag_pos = vertex;" \
-	"   frag_pos.y -= height_pixel;" \
-	"   frag_pos.z = height_pixel;" \
-    "   float occlusion = 0.0;" \
-    "   vec3 rVec = -1.0 + 2.0 * texture2D(noise_map, gl_TexCoord[0].xy).rgb;" \
-	"   vec3 t = normalize(rVec - direction * dot(rVec, direction));" 
-	"   mat3 rot = mat3(t, cross(direction,t), direction);"
-	"   for(int i =0 ; i < 16 ; ++i){"
-	"       vec3 decal = rot * samples_hemisphere[i] * 20.0;"
-	"       vec3 screen_decal = decal;"
-	"       screen_decal.y *= -1.0;"
-	"       vec3 screen_pos = gl_FragCoord.xyz  + screen_decal;"
-	"       vec3 occl_depth_pixel = texture2D(depth_map, (screen_pos.xy) * screen_ratio).rgb;"
-	"       float occl_height = (0.5 - (occl_depth_pixel.r + occl_depth_pixel.g / 256.0 + occl_depth_pixel.b / 65536.0)) * 1000.0;"
-    "       if(occl_height > (frag_pos.z+decal.z) + 1.0"
-    "        && occl_height - (frag_pos.z+decal.z) < 20.0)"
-    "           occlusion += 1.0;"
-	"   } "
-    "   float color_rgb = 1.0 - occlusion / 12.0;" \
-    "   gl_FragColor.rgb = vec3(color_rgb, color_rgb, color_rgb);" \
-    "   gl_FragColor.a = 1.0;" \
-    "}";
-
 struct RenderSystem {
 
     /**
@@ -321,7 +38,7 @@ struct RenderSystem {
      **/
     int debug_screen{0};
 
-    void init_renderer(sf::RenderWindow& window) {
+    void init_renderer(sf::RenderWindow& window, TextureManager& texture_manager) {
         bool r = true;
 
         sf::Vector2u window_size = window.getSize();
@@ -337,15 +54,16 @@ struct RenderSystem {
         if(!m_pbrScreen.create(window_size.x * m_superSampling, window_size.y * m_superSampling, true))
             r = false;
         
-        m_colorShader.loadFromMemory(color_fragShader,sf::Shader::Fragment);
-        light_system.m_depthShader.loadFromMemory(depth_fragShader,sf::Shader::Fragment);
-        m_normalShader.loadFromMemory(normal_fragShader,sf::Shader::Fragment);
-        m_SSAOShader.loadFromMemory(vertexShader,SSAO_fragShader);
-        m_pbrShader.loadFromMemory(pbr_fragShader, sf::Shader::Fragment);
-        light_system.get_light_shader()->loadFromMemory(vertexShader, lighting_fragShader);
+        m_colorShader.loadFromFile("shaders/color.frag", sf::Shader::Fragment);
+        light_system.m_depthShader.loadFromFile("shaders/depth.frag", sf::Shader::Fragment);
+        m_normalShader.loadFromFile("shaders/normal.frag",sf::Shader::Fragment);
+        m_SSAOShader.loadFromFile("shaders/default.vert", "shaders/ssao.frag");
+        m_pbrShader.loadFromFile("shaders/pbr.frag", sf::Shader::Fragment);
+        light_system.get_light_shader()->loadFromFile("shaders/default.vert", "shaders/light.frag");
         light_system.get_light_shader()->setUniform("ambient_light", sf::Glsl::Vec4(Configuration::get()->ambient_light));
         light_system.get_light_shader()->setUniform("enable_sRGB", Configuration::get()->enable_SRGB);
-        
+        light_system.get_light_shader()->setUniform("map_brdflut", texture_manager.get("brd-flut"));
+
         ImGui::SFML::Init(window, m_colorScreen, true);
 
         m_colorScreen.setActive(true);
@@ -416,6 +134,7 @@ struct RenderSystem {
 
         m_SSAONoiseTexture.setRepeated(true);
         m_SSAONoiseTexture.loadFromImage(m_SSAONoisePattern);
+        m_SSAONoiseTexture.setRepeated(true);
         m_SSAOShader.setUniform("noise_map",m_SSAONoiseTexture);
     }
 
@@ -427,12 +146,18 @@ struct RenderSystem {
 
         sf::View current_view = window.getView();
         sf::Vector2f view_shift = current_view.getCenter();
+        
+        light_system.get_light_shader()->setUniform("p_exposure", Configuration::get()->exposure);
+        light_system.get_light_shader()->setUniform("view_pos", sf::Vector3f(
+            current_view.getCenter().x, 
+            current_view.getCenter().y,
+            2000.0f
+        ));
+
         view_shift -= sf::Vector2f(current_view.getSize().x / 2, current_view.getSize().y / 2);
 
         light_system.calculate_lights(entity_manager, view_shift, current_view, m_colorScreen.getSize());
-        light_system.get_light_shader()->setUniform("view_shift",view_shift);
-        light_system.get_light_shader()->setUniform("view_pos", sf::Vector3f(view_shift.x, view_shift.y, 750.0f));
-        light_system.get_light_shader()->setUniform("p_exposure", Configuration::get()->exposure);
+        light_system.get_light_shader()->setUniform("view_shift", view_shift);
 
         m_colorScreen.setActive(true);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -471,7 +196,7 @@ struct RenderSystem {
         {
             render.setPosition(physics.position(view_shift).x, physics.position(view_shift).y);
             render.setScale(sf::Vector2f(render.scale, render.scale));
-
+            
             sf::RenderStates state;
             state.transform = sf::Transform::Identity;
 
@@ -564,6 +289,48 @@ struct RenderSystem {
     }
 
 private:
+
+    void render_textures(sf::Vector2f view_shift, Entity& entity, RenderComponent& render, PhysicsComponent& physics)
+    {
+        render.setPosition(physics.position(view_shift).x, physics.position(view_shift).y);
+        render.setScale(sf::Vector2f(render.scale, render.scale));
+
+        sf::RenderStates state;
+        state.transform = sf::Transform::Identity;
+
+        m_colorScreen.setActive(true);
+            m_colorShader.setUniform("z_position", physics.z);
+            render.prepare_shader(&m_colorShader);
+            state.shader = &m_colorShader;
+            m_colorScreen.draw(render, state);
+        m_colorScreen.setActive(false);
+
+        m_pbrScreen.setActive(true);
+            m_pbrShader.setUniform("z_position", physics.z);
+            render.prepare_shader(&m_pbrShader);
+            state.shader = &m_pbrShader;
+            m_pbrScreen.draw(render, state);
+        m_pbrScreen.setActive(false);
+
+        m_normalScreen.setActive(true);
+            m_normalShader.setUniform("z_position", physics.z);
+            render.prepare_shader(&m_normalShader);
+            state.shader = &m_normalShader;
+            m_normalScreen.draw(render, state);
+        m_normalScreen.setActive(false);
+
+        m_depthScreen.setActive(true);
+            light_system.m_depthShader.setUniform("z_position", physics.z);
+            render.prepare_shader(&light_system.m_depthShader);
+            state.shader = &light_system.m_depthShader;
+            m_depthScreen.draw(render, state);
+        m_depthScreen.setActive(false);
+
+        if(render.is_selected) {
+            _debug_render_lines(render, m_colorScreen);
+        }
+    
+    }
 
     void _debug_render_lines(RenderComponent& render, sf::RenderTarget& window) {
         float initial_x = render.getGlobalBounds().left;

@@ -20,7 +20,7 @@ struct LightComponent {
     float radius{50.f};
     float intensity{1.f};
     
-    float quadratic_attenuation {1.0f};
+    float quadratic_attenuation {.03f};
     float linear_attenuation {0.0f};
 
     bool is_selected{false};

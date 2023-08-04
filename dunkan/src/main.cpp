@@ -48,10 +48,6 @@ bool game_entities(EntityManager& entity_manager, TextureManager& texture_manage
     texture_manager.load(std::string("Torusb-Depth"), std::string("data/torusb_height.png"));
     texture_manager.load(std::string("Torusb-Normal"), std::string("data/torusb_normal.png"));
 
-    texture_manager.load(std::string("Untilted-Albedo"), std::string("data/untitled_albedo.png"));
-    texture_manager.load(std::string("Untilted-Depth"), std::string("data/untitled_height.png"));
-    texture_manager.load(std::string("Untilted-Normal"), std::string("data/untitled_normal.png"));
-
     texture_manager.load(std::string("Teapot-Albedo"), std::string("data/teapot_albedo.png"));
     texture_manager.load(std::string("Teapot-Depth"), std::string("data/teapot_height.png"));
     texture_manager.load(std::string("Teapot-Normal"), std::string("data/teapot_normal.png"));
@@ -185,8 +181,8 @@ bool game_entities(EntityManager& entity_manager, TextureManager& texture_manage
             1.f,
             texture_manager.get("Teapot-Normal"), 
             texture_manager.get("Teapot-Depth"),
+            0.5f,
             0.4f,
-            0.0f,
             0.0f
         }).load();
 
@@ -215,7 +211,7 @@ void update(sf::RenderWindow& window) {
     if(game_entities(entity_manager, texture_manager)) {
 
         if(!render_load) {
-            render_system.init_renderer(window);
+            render_system.init_renderer(window, texture_manager);
             render_load = true;
         }
 
