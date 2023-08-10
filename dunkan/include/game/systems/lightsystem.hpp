@@ -38,7 +38,7 @@ struct LightSystem {
                 position = light.direction;
                 gl_position[3] = 0;
             } else {
-                position = physics.position(sf::Vector2f(0.0f, 0.0f));
+                position = physics.position(view_shift);
             }
 
             gl_position[0] = position.x;

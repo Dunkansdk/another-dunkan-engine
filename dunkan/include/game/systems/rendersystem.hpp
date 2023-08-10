@@ -62,7 +62,6 @@ struct RenderSystem {
         light_system.get_light_shader()->loadFromFile("shaders/default.vert", "shaders/light.frag");
         light_system.get_light_shader()->setUniform("ambient_light", sf::Glsl::Vec4(Configuration::get()->ambient_light));
         light_system.get_light_shader()->setUniform("enable_sRGB", Configuration::get()->enable_SRGB);
-        light_system.get_light_shader()->setUniform("map_brdflut", texture_manager.get("brd-flut"));
 
         ImGui::SFML::Init(window, m_colorScreen, true);
 
@@ -92,7 +91,8 @@ struct RenderSystem {
         light_system.get_light_shader()->setUniform("material_map",m_pbrScreen.getTexture());
         light_system.get_light_shader()->setUniform("screen_ratio",sf::Vector2f(1.0 / (float)m_colorScreen.getSize().x,
                                                                 1.0 / (float)m_colorScreen.getSize().y));
-
+        light_system.get_light_shader()->setUniform("map_brdflut", texture_manager.get("brd-flut"));
+        
         m_rendererStates.shader = light_system.get_light_shader();
 
         SSAO_option(true);
@@ -121,14 +121,14 @@ struct RenderSystem {
         m_SSAOShader.setUniformArray("samples_hemisphere",samples_hemisphere,16);
 
         m_SSAONoisePattern.create(4,4);
-
+        
         for(int x = 0 ; x < 4 ; ++x)
         for(int y = 0 ; y < 4 ; ++y)
         {
             sf::Color c = sf::Color::White;
-            c.r = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
-            c.g = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
-            c.b = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255)));
+            c.r = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255))) / 2.0;
+            c.g = (int)(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/255))) / 2.0;
+            c.r = 0;
             m_SSAONoisePattern.setPixel(x,y,c);
         }
 
@@ -136,6 +136,9 @@ struct RenderSystem {
         m_SSAONoiseTexture.loadFromImage(m_SSAONoisePattern);
         m_SSAONoiseTexture.setRepeated(true);
         m_SSAOShader.setUniform("noise_map",m_SSAONoiseTexture);
+
+
+        compute_trigonometry();
     }
 
     void update(EntityManager& entity_manager, sf::RenderWindow& window) {
@@ -146,18 +149,12 @@ struct RenderSystem {
 
         sf::View current_view = window.getView();
         sf::Vector2f view_shift = current_view.getCenter();
-        
-        light_system.get_light_shader()->setUniform("p_exposure", Configuration::get()->exposure);
-        light_system.get_light_shader()->setUniform("view_pos", sf::Vector3f(
-            current_view.getCenter().x, 
-            current_view.getCenter().y,
-            2000.0f
-        ));
-
         view_shift -= sf::Vector2f(current_view.getSize().x / 2, current_view.getSize().y / 2);
 
         light_system.calculate_lights(entity_manager, view_shift, current_view, m_colorScreen.getSize());
         light_system.get_light_shader()->setUniform("view_shift", view_shift);
+        light_system.get_light_shader()->setUniform("p_exposure", Configuration::get()->exposure);
+        
 
         m_colorScreen.setActive(true);
             glClear(GL_DEPTH_BUFFER_BIT);
@@ -239,9 +236,9 @@ struct RenderSystem {
         #endif
 
         m_colorScreen.display();
-        m_pbrScreen.display();
-        m_depthScreen.display();
-        m_normalScreen.display();
+        // m_pbrScreen.display();
+        // m_depthScreen.display();
+        // m_normalScreen.display();
 
         if(Configuration::get()->enable_SSAO)
         {
@@ -249,6 +246,12 @@ struct RenderSystem {
             m_SSAOScreen.display();
         }
 
+        light_system.get_light_shader()->setUniform("view_pos", sf::Vector3f(
+            current_view.getCenter().x, 
+            current_view.getCenter().y, 
+            750.0f
+        ));
+        
         m_rendererStates.transform = sf::Transform::Identity;
         m_rendererStates.transform.translate(view_shift.x, view_shift.y);
 
@@ -290,46 +293,23 @@ struct RenderSystem {
 
 private:
 
-    void render_textures(sf::Vector2f view_shift, Entity& entity, RenderComponent& render, PhysicsComponent& physics)
-    {
-        render.setPosition(physics.position(view_shift).x, physics.position(view_shift).y);
-        render.setScale(sf::Vector2f(render.scale, render.scale));
+    Mat3x3 m_isoToCartMat;
 
-        sf::RenderStates state;
-        state.transform = sf::Transform::Identity;
+    void compute_trigonometry() {
+        float cosXY = cos(90*PI/180.0);
+        float sinXY = sin(90*PI/180.0);
+        float cosZ = cos(30*PI/180);
+        float sinZ = sin(30*PI/180);
 
-        m_colorScreen.setActive(true);
-            m_colorShader.setUniform("z_position", physics.z);
-            render.prepare_shader(&m_colorShader);
-            state.shader = &m_colorShader;
-            m_colorScreen.draw(render, state);
-        m_colorScreen.setActive(false);
+        m_isoToCartMat = Mat3x3(cosXY        , -sinXY       , 0    ,
+                             sinXY * sinZ , cosXY * sinZ , -cosZ,
+                             0            , 0            , 0);
 
-        m_pbrScreen.setActive(true);
-            m_pbrShader.setUniform("z_position", physics.z);
-            render.prepare_shader(&m_pbrShader);
-            state.shader = &m_pbrShader;
-            m_pbrScreen.draw(render, state);
-        m_pbrScreen.setActive(false);
+        light_system.get_light_shader()->setUniform("p_isoToCartMat",sf::Glsl::Mat3(m_isoToCartMat.values));
+        light_system.get_light_shader()->setUniform("p_isoToCartZFactor",m_isoToCartMat.values[5]);
+        m_SSAOShader.setUniform("p_isoToCartMat",sf::Glsl::Mat3(m_isoToCartMat.values));
+        m_SSAOShader.setUniform("p_isoToCartZFactor",m_isoToCartMat.values[5]);
 
-        m_normalScreen.setActive(true);
-            m_normalShader.setUniform("z_position", physics.z);
-            render.prepare_shader(&m_normalShader);
-            state.shader = &m_normalShader;
-            m_normalScreen.draw(render, state);
-        m_normalScreen.setActive(false);
-
-        m_depthScreen.setActive(true);
-            light_system.m_depthShader.setUniform("z_position", physics.z);
-            render.prepare_shader(&light_system.m_depthShader);
-            state.shader = &light_system.m_depthShader;
-            m_depthScreen.draw(render, state);
-        m_depthScreen.setActive(false);
-
-        if(render.is_selected) {
-            _debug_render_lines(render, m_colorScreen);
-        }
-    
     }
 
     void _debug_render_lines(RenderComponent& render, sf::RenderTarget& window) {

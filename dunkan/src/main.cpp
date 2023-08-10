@@ -177,8 +177,8 @@ bool game_entities(EntityManager& entity_manager, TextureManager& texture_manage
     entity_manager.add_component<RenderComponent>(entity8, RenderComponent{
             texture_manager.get("Teapot-Albedo"), 
             sf::IntRect(0, 0, texture_manager.get("Teapot-Albedo").getSize().x, texture_manager.get("Teapot-Albedo").getSize().y),
-            300.f,
-            1.f,
+            400.f,
+            1.2f,
             texture_manager.get("Teapot-Normal"), 
             texture_manager.get("Teapot-Depth"),
             0.5f,
@@ -226,6 +226,7 @@ void update(sf::RenderWindow& window) {
             while (window.pollEvent(event)) 
             {
                 if (event.type == sf::Event::Closed) {
+                    render_system.destroy();
                     window.close();
                 }
 

@@ -17,10 +17,10 @@ struct LightComponent {
 
     sf::Vector3f direction {0.0f, 0.0f, -1.0f};
 
-    float radius{50.f};
+    float radius{100.f};
     float intensity{1.f};
     
-    float quadratic_attenuation {.03f};
+    float quadratic_attenuation {1.f};
     float linear_attenuation {0.0f};
 
     bool is_selected{false};
