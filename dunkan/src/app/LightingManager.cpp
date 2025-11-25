@@ -50,21 +50,32 @@ void LightingManager::updateLightingUBO(VulkanBuffer *lightingUBO,
 void LightingManager::initializeDefaultLights() {
   lights.clear();
 
-  // Sun (directional light) - adjusted for 2.5D isometric (XZ ground plane, Y =
-  // depth)
+  // Sun light (main 2.5D directional light)
+  // Aligned with isometric view (from top-right-back)
   LightConfig sun;
-  sun.type = 0;                                   // Directional
-  sun.direction = glm::vec3(-0.3f, -0.5f, -0.8f); // Angled down toward XZ plane
-  sun.color = glm::vec3(1.0f, 0.98f, 0.95f);
-  sun.intensity = 0.4f;
+  sun.type = 0; // Directional
+  sun.position = glm::vec3(0.0f, 0.0f, 0.0f);
+  sun.direction =
+      glm::normalize(glm::vec3(-1.0f, -1.0f, -0.5f)); // XZ direction + Y depth
+  sun.color = glm::vec3(1.0f, 0.95f, 0.9f);           // Warm sunlight
+  sun.intensity = 0.6f; // Balanced intensity (was 4.0 with 0.15 scaling)
+  sun.radius = 0.0f;
+  sun.cutoffAngle = 0.0f;
+  sun.enabled = true;
   addLight(sun);
 
-  // Rim light (opposite direction for depth perception)
+  // Rim light (from opposite side for depth)
+  // Positioned on the left-front side in XZ plane
   LightConfig rim;
-  rim.type = 0;                                // Directional
-  rim.direction = glm::vec3(0.5f, 0.3f, 0.8f); // From opposite angle
-  rim.color = glm::vec3(0.8f, 0.85f, 1.0f);    // Slightly cool tint
-  rim.intensity = 0.15f;
+  rim.type = 0; // Directional
+  rim.position = glm::vec3(0.0f, 0.0f, 0.0f);
+  rim.direction =
+      glm::normalize(glm::vec3(1.0f, -0.5f, 0.3f)); // From left-front
+  rim.color = glm::vec3(0.6f, 0.7f, 1.0f);          // Cool rim light
+  rim.intensity = 0.3f; // Subtle intensity (was 2.0 with 0.15 scaling)
+  rim.radius = 0.0f;
+  rim.cutoffAngle = 0.0f;
+  rim.enabled = true;
   addLight(rim);
 }
 

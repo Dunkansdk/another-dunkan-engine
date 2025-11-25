@@ -91,6 +91,7 @@ private:
 
   // Entity editing cache (for DebugUI)
   std::vector<dunkan::EntityEditData> entityEditCache;
+  bool entityCacheNeedsRebuild = true;
 
   void initWindow() {
     glfwInit();
@@ -328,14 +329,18 @@ private:
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    // Rebuild entity cache each frame (pointers to actual components)
-    entityEditCache.clear();
-    entity_manager.foreach<VulkanRenderSystem_c, VulkanRenderSystem_t>(
-        [&](Entity &, RenderComponent &renderComp,
-            PhysicsComponent &physicsComp) {
-          entityEditCache.push_back(
-              {&renderComp, &physicsComp, renderComp.albedoTextureName});
-        });
+    // Rebuild entity cache only when needed (on first frame or after entity
+    // changes)
+    if (entityCacheNeedsRebuild) {
+      entityEditCache.clear();
+      entity_manager.foreach<VulkanRenderSystem_c, VulkanRenderSystem_t>(
+          [&](Entity &, RenderComponent &renderComp,
+              PhysicsComponent &physicsComp) {
+            entityEditCache.push_back(
+                {&renderComp, &physicsComp, renderComp.albedoTextureName});
+          });
+      entityCacheNeedsRebuild = false;
+    }
 
     // Render debug UI using component
     debugUI->render(m_fps, entity_manager.get_entities_count(),
@@ -346,6 +351,7 @@ private:
   }
 
   void loadGameEntities() {
+    // Mark cache for rebuild after loading entities
     std::cout << "Loading game entities..." << std::endl;
 
     try {
