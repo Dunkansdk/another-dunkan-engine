@@ -1,315 +1,694 @@
-#include <iostream>
+#include <GLFW/glfw3.h>
+#include <array>
 #include <chrono>
-#include <SFML/Graphics.hpp>
-#include <type_traits>
-#include "SFML/Window/ContextSettings.hpp"
-#include "game/systems/camerasystem.hpp"
-#include "game/systems/debugsystem.hpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_vulkan.h>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
+#include <vulkan/vulkan.h>
+
+#include "ecs/entitymanager.hpp"
+#include "game/components/lightcomponent.hpp"
+#include "game/components/physicscomponent.hpp"
+#include "game/components/rendercomponent.hpp"
+#include "game/lightingsystem.hpp"
 #include "game/types.hpp"
-#include "game/systems/physicssystem.hpp"
-#include "game/systems/rendersystem.hpp"
-#include "game/systems/moveentitysystem.hpp"
+#include "vulkan/VulkanBuffer.hpp"
+#include "vulkan/VulkanContext.hpp"
+#include "vulkan/VulkanDescriptorManager.hpp"
+#include "vulkan/VulkanImage.hpp"
+#include "vulkan/VulkanPipeline.hpp"
+#include "vulkan/VulkanRenderPass.hpp"
+#include "vulkan/VulkanRenderSystem.hpp"
+#include "vulkan/VulkanResourceManager.hpp"
+#include "vulkan/VulkanSSAO.hpp"
+#include "vulkan/VulkanSwapchain.hpp"
+#include "vulkan/VulkanTypes.hpp"
 
-#include "utils/Configuration.hpp"
+// Application components
+#include "app/ApplicationConfig.hpp"
+#include "app/DebugUI.hpp"
+#include "app/LightingManager.hpp"
 
-#include "game/imguiconfig.hpp"
+// Type aliases for entity iteration
+using VulkanRenderSystem_c =
+    ADE::META_TYPES::Typelist<RenderComponent, PhysicsComponent>;
+using VulkanRenderSystem_t = ADE::META_TYPES::Typelist<>;
 
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
+const int MAX_FRAMES_IN_FLIGHT = 2;
 
-unsigned int m_frame;
-unsigned int m_fps;
-sf::Clock m_clock;
+unsigned int m_frame = 0;
+unsigned int m_fps = 0;
 
-bool game_entities(EntityManager& entity_manager, TextureManager& texture_manager) {
+struct UniformBufferObject {
+  alignas(16) glm::mat4 view;
+  alignas(16) glm::mat4 proj;
+};
 
-    texture_manager.load(std::string("Abbey-Albedo"), std::string("data/abbey_albedo.png"));
-    texture_manager.load(std::string("Abbey-Depth"), std::string("data/abbey_height.png"));
-    texture_manager.load(std::string("Abbey-Normal"), std::string("data/abbey_normal.png"));
+class VulkanApplication {
+public:
+  void run() {
+    initWindow();
+    initVulkan();
+    loadGameEntities();
+    mainLoop();
+    cleanup();
+  }
 
-    texture_manager.load(std::string("Tree-Albedo"), std::string("data/tree_albedo.png"));
-    texture_manager.load(std::string("Tree-Depth"), std::string("data/tree_height.png"));
-    texture_manager.load(std::string("Tree-Normal"), std::string("data/tree_normal.png"));
-    texture_manager.load(std::string("Tree-Material"), std::string("data/tree_material.png"));
+private:
+  GLFWwindow *window = nullptr;
+  VulkanContext *vulkanContext = nullptr;
+  VulkanSwapchain *swapchain = nullptr;
+  VulkanRenderPass *renderPass = nullptr;
+  VulkanPipeline *pipeline = nullptr;
+  VulkanPipeline *compPipeline = nullptr;
+  VulkanDescriptorManager *descriptorManager = nullptr;
+  VulkanRenderSystem *renderSystem = nullptr;
+  VulkanSSAO *ssao = nullptr;
+  EntityManager entity_manager;
 
-    texture_manager.load(std::string("Torus-Albedo"), std::string("data/torus_albedo.png"));
-    texture_manager.load(std::string("Torus-Depth"), std::string("data/torus_height.png"));
-    texture_manager.load(std::string("Torus-Normal"), std::string("data/torus_normal.png"));
-    texture_manager.load(std::string("Torus-Material"), std::string("data/torus_material.png"));
+  std::vector<VkCommandBuffer> commandBuffers;
+  std::vector<VkSemaphore> imageAvailableSemaphores;
+  std::vector<VkSemaphore> renderFinishedSemaphores;
+  std::vector<VkFence> inFlightFences;
+  std::vector<VkDescriptorSet> descriptorSets;
+  VkDescriptorSet compDescriptorSet;
+  uint32_t currentFrame = 0;
 
-    texture_manager.load(std::string("Wetsand-Albedo"), std::string("data/wetsand_albedo.png"));
-    texture_manager.load(std::string("Wetsand-Depth"), std::string("data/wetsand_height.png"));
-    texture_manager.load(std::string("Wetsand-Normal"), std::string("data/wetsand_normal.png"));
-    texture_manager.load(std::string("Wetsand-Material"), std::string("data/wetsand_material.png"));
+  // ImGui resources
+  VkDescriptorPool imguiDescriptorPool = VK_NULL_HANDLE;
 
-    texture_manager.load(std::string("Sarco-Albedo"), std::string("data/sarco_albedo.png"));
-    texture_manager.load(std::string("Sarco-Depth"), std::string("data/sarco_height.png"));
-    texture_manager.load(std::string("Sarco-Normal"), std::string("data/sarco_normal.png"));
+  // Application components (modular design)
+  dunkan::ApplicationConfig config;
+  dunkan::LightingManager lightingManager;
+  std::unique_ptr<dunkan::DebugUI> debugUI;
 
-    texture_manager.load(std::string("Torusb-Albedo"), std::string("data/torusb_albedo.png"));
-    texture_manager.load(std::string("Torusb-Depth"), std::string("data/torusb_height.png"));
-    texture_manager.load(std::string("Torusb-Normal"), std::string("data/torusb_normal.png"));
+  // Entity editing cache (for DebugUI)
+  std::vector<dunkan::EntityEditData> entityEditCache;
 
-    texture_manager.load(std::string("Teapot-Albedo"), std::string("data/teapot_albedo.png"));
-    texture_manager.load(std::string("Teapot-Depth"), std::string("data/teapot_height.png"));
-    texture_manager.load(std::string("Teapot-Normal"), std::string("data/teapot_normal.png"));
+  void initWindow() {
+    glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    window = glfwCreateWindow(WIDTH, HEIGHT, "Dunkan Engine - Vulkan", nullptr,
+                              nullptr);
+  }
 
-    texture_manager.load(std::string("brd-flut"), std::string("data/ibl_brdf_lut.png"));
+  void initVulkan() {
+    vulkanContext = new VulkanContext();
+    vulkanContext->init(window);
 
-    Entity& entity1 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity1, PhysicsComponent{
-            .x = 350.f,
-            .y = 10.f,
-            .z = .5f
-        });
-    entity_manager.add_component<RenderComponent>(entity1, RenderComponent{
-            texture_manager.get("Abbey-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Abbey-Albedo").getSize().x, texture_manager.get("Abbey-Albedo").getSize().y),
-            460.f,
-            1.f,
-            texture_manager.get("Abbey-Normal"), 
-            texture_manager.get("Abbey-Depth"),
-            0.7f,
-            0.0f,
-            0.0f
-        }).load();
+    swapchain = new VulkanSwapchain(*vulkanContext, window);
+    swapchain->create();
 
-    Entity& entity2 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity2, PhysicsComponent{
-            .x = 140.f,
-            .y = 180.f,
-            .z = -.65f
-        });
-    entity_manager.add_component<RenderComponent>(entity2, RenderComponent{
-            texture_manager.get("Tree-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Tree-Albedo").getSize().x, texture_manager.get("Tree-Albedo").getSize().y),
-            300.f,
-            1.f,
-            texture_manager.get("Tree-Normal"), 
-            texture_manager.get("Tree-Depth"), 
-            texture_manager.get("Tree-Material")
-        }).load();
+    renderPass =
+        new VulkanRenderPass(*vulkanContext, swapchain->getImageFormat());
+    renderPass->createGBufferRenderPass();
+    renderPass->createSSAORenderPass(); // We can create the render pass even if
+                                        // we don't use it
+    renderPass->create();               // Final render pass
 
-    // Sunlight
-    Entity& entity3 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity3, PhysicsComponent{
-            .x = 900.f,
-            .y = 900.f,
-            .z = .5f
-        });
-    entity_manager.add_component<LightComponent>(entity3, LightComponent{
-            .light_type = LightType::DIRECTIONAL,
-            .diffuse_color = sf::Color(255,255,224),
-            .direction = sf::Vector3f(-1,.2,-1),
-            .intensity = 5.0f
-        });
+    swapchain->createFramebuffers(renderPass->getFinalRenderPass());
 
-    // Spotlight
-    Entity& entity4 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity4, PhysicsComponent{
-            .x = 500.f,
-            .y = 200.f,
-            .z = 50.f
-        });
-    entity_manager.add_component<LightComponent>(entity4, LightComponent{
-            .light_type = LightType::SPOT,
-            .diffuse_color = sf::Color(160,96,160),
-            .direction = sf::Vector3f(0.0f, 0.0f, -1.0f),
-            .radius = 3.0f,
-            .intensity = 30.0f
-        });
+    pipeline = new VulkanPipeline(*vulkanContext);
+    pipeline->createGraphicsPipeline(
+        renderPass->getGBufferRenderPass(), "shaders/default.vert.spv",
+        "shaders/color.frag.spv", swapchain->getExtent(),
+        4 // 4 Color Attachments for G-Buffer
+    );
 
-    Entity& entity5 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity5, PhysicsComponent{
-            .x = -512.f,
-            .y = -224.f,
-            .z = .5f
-        });
-    entity_manager.add_component<RenderComponent>(entity5, RenderComponent{
-            texture_manager.get("Wetsand-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Wetsand-Albedo").getSize().x * 7, texture_manager.get("Wetsand-Albedo").getSize().y * 7),
-            10.f,
-            1.f,
-            texture_manager.get("Wetsand-Normal"), 
-            texture_manager.get("Wetsand-Depth"),
-            texture_manager.get("Wetsand-Material"),
-            false
-        }).load();
+    descriptorManager = new VulkanDescriptorManager(*vulkanContext);
+    descriptorManager->createDescriptorPool(100);
 
-    Entity& entity6 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity6, PhysicsComponent{
-            .x = 300.f,
-            .y = 300.f,
-            .z = -.65f
-        });
-    entity_manager.add_component<RenderComponent>(entity6, RenderComponent{
-            texture_manager.get("Torusb-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Torusb-Albedo").getSize().x, texture_manager.get("Torusb-Albedo").getSize().y),
-            40.f,
-            1.f,
-            texture_manager.get("Torusb-Normal"), 
-            texture_manager.get("Torusb-Depth"), 
-            0.6f,
-            1.0f,
-            0.0f
-        }).load();
+    renderSystem = new VulkanRenderSystem(*vulkanContext, *descriptorManager,
+                                          *pipeline, entity_manager);
+    renderSystem->initGBuffer(renderPass->getGBufferRenderPass(),
+                              swapchain->getExtent());
 
-    Entity& entity7 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity7, PhysicsComponent{
-            .x = 540.f,
-            .y = 580.f,
-            .z = -.65f
-        });
-    entity_manager.add_component<RenderComponent>(entity7, RenderComponent{
-            texture_manager.get("Tree-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Tree-Albedo").getSize().x, texture_manager.get("Tree-Albedo").getSize().y),
-            300.f,
-            1.f,
-            texture_manager.get("Tree-Normal"), 
-            texture_manager.get("Tree-Depth"), 
-            texture_manager.get("Tree-Material")
-        }).load();
+    // Initialize SSAO
+    ssao = new VulkanSSAO(*vulkanContext);
+    ssao->init(renderPass->getSSAORenderPass(), swapchain->getExtent());
 
-    Entity& entity8 = entity_manager.create_entity();
-    entity_manager.add_component<PhysicsComponent>(entity8, PhysicsComponent{
-            .x = 450.f,
-            .y = 200.f,
-            .z = .5f
-        });
-    entity_manager.add_component<RenderComponent>(entity8, RenderComponent{
-            texture_manager.get("Teapot-Albedo"), 
-            sf::IntRect(0, 0, texture_manager.get("Teapot-Albedo").getSize().x, texture_manager.get("Teapot-Albedo").getSize().y),
-            400.f,
-            1.2f,
-            texture_manager.get("Teapot-Normal"), 
-            texture_manager.get("Teapot-Depth"),
-            0.5f,
-            0.4f,
-            0.0f
-        }).load();
+    // Create Composition Pipeline
+    compPipeline = new VulkanPipeline(*vulkanContext);
+    compPipeline->createCompositionPipeline(
+        renderPass->getFinalRenderPass(), "shaders/composite.vert.spv",
+        "shaders/composite.frag.spv", swapchain->getExtent());
 
-    Configuration::load(entity_manager);
+    compDescriptorSet = descriptorManager->allocateDescriptorSet(
+        compPipeline->getDescriptorSetLayout());
 
-    return true;
-}
+    // Update Composition Descriptor Set (5 bindings: 4 G-Buffer + 1 SSAO)
+    descriptorManager->updateTextureDescriptor(
+        compDescriptorSet, 0,
+        renderSystem->getGBuffer().colorRT->getImageView(),
+        renderSystem->getGBuffer().colorRT->getSampler());
+    descriptorManager->updateTextureDescriptor(
+        compDescriptorSet, 1,
+        renderSystem->getGBuffer().normalRT->getImageView(),
+        renderSystem->getGBuffer().normalRT->getSampler());
+    descriptorManager->updateTextureDescriptor(
+        compDescriptorSet, 2,
+        renderSystem->getGBuffer().depthRT->getImageView(),
+        renderSystem->getGBuffer().depthRT->getSampler());
+    descriptorManager->updateTextureDescriptor(
+        compDescriptorSet, 3,
+        renderSystem->getGBuffer().materialRT->getImageView(),
+        renderSystem->getGBuffer().materialRT->getSampler());
+    descriptorManager->updateTextureDescriptor(compDescriptorSet, 4,
+                                               ssao->ssaoOutput->getImageView(),
+                                               ssao->ssaoOutput->getSampler());
 
-void imgui_form(sf::RenderWindow& window) {
-    ImGui::SFML::Init(window);
-    ImGuiConfig config;
-    config.setup();
-}
+    // Bind lighting UBO to composition descriptor set
+    VkDescriptorBufferInfo lightingBufferInfo{};
+    lightingBufferInfo.buffer = renderSystem->getLightingUBO()->getBuffer();
+    lightingBufferInfo.offset = 0;
+    lightingBufferInfo.range = sizeof(LightingUBO);
 
-bool render_load = false;
+    VkWriteDescriptorSet lightingWrite{};
+    lightingWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+    lightingWrite.dstSet = compDescriptorSet;
+    lightingWrite.dstBinding = 5;
+    lightingWrite.dstArrayElement = 0;
+    lightingWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    lightingWrite.descriptorCount = 1;
+    lightingWrite.pBufferInfo = &lightingBufferInfo;
 
-void update(sf::RenderWindow& window) {
-    EntityManager entity_manager;
-    RenderSystem render_system {};
-    PhysicsSystem physics_system {};
-    DebugSystem debug_system {}; 
-    CameraSystem camera_system {};
-    MoveEntitySystem move_entity_system {};
-    TextureManager texture_manager {};
+    vkUpdateDescriptorSets(vulkanContext->getDevice(), 1, &lightingWrite, 0,
+                           nullptr);
 
-    if(game_entities(entity_manager, texture_manager)) {
+    // Update SSAO Descriptor Set
+    VkDescriptorSet ssaoSet =
+        descriptorManager->allocateDescriptorSet(ssao->descriptorSetLayout);
+    ssao->updateDescriptorSet(ssaoSet, renderSystem->getGBuffer().depthRT,
+                              renderSystem->getGBuffer().normalRT);
 
-        if(!render_load) {
-            render_system.init_renderer(window, texture_manager);
-            render_load = true;
-        }
+    createCommandBuffers();
+    createSyncObjects();
+    initImGui();
 
-        imgui_form(window);
-    
-        sf::Clock clock;
-        sf::Event event;
-        while(window.isOpen())
-        {
-            sf::Time dt = clock.restart();
+    // Initialize default lights
+    initializeLights();
 
-            while (window.pollEvent(event)) 
-            {
-                if (event.type == sf::Event::Closed) {
-                    render_system.destroy();
-                    window.close();
-                }
+    std::cout << "Vulkan initialized successfully!" << std::endl;
+  }
 
-                if (event.type == sf::Event::Resized)
-                {
-                    sf::FloatRect visible_area(0.f, 0.f, event.size.width, event.size.height);
-                    window.setView(sf::View(visible_area));
-                }
+  void createCommandBuffers() {
+    commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num1))
-                        render_system.debug_screen = 0;
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num2))
-                        render_system.debug_screen = 1;
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num3))
-                        render_system.debug_screen = 2;
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num4))
-                        render_system.debug_screen = 3;
-                    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Num5))
-                        render_system.debug_screen = 4;
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool = vulkanContext->getCommandPool();
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount = (uint32_t)commandBuffers.size();
 
-#ifdef DEBUG_IMGUI
-                ImGui::SFML::ProcessEvent(window, event);
-                // System poll events
-                move_entity_system.update(entity_manager, window, event);
-#endif
-            }
-
-#ifdef DEBUG_IMGUI
-            ImGui::SFML::Update(window, clock.restart());
-            ImGui::Begin("Hello, world!");
-            ImGui::Text("FPS: %f", (float)m_fps);
-            ImGui::Text("Entities: %lu", entity_manager.get_entities_count());
-            if (ImGui::Button("SSAO")) {
-                render_system.SSAO_option(!Configuration::get()->enable_SSAO);
-            }
-            if (ImGui::Button("Gamma Correction")) {
-                render_system.enable_gamma_correction(!Configuration::get()->enable_SRGB);
-            }
-            ImGui::DragFloat("Exposure", &Configuration::get()->exposure, .01f);
-            ImGui::End();
-            debug_system.update(entity_manager);
-#endif
-
-            camera_system.update(window, dt.asSeconds());
-            physics_system.update(entity_manager, dt.asSeconds());
-            render_system.update(entity_manager, window);
-
-            window.display();
-
-            if(m_clock.getElapsedTime().asSeconds() >= 1.f)
-            {
-                m_fps = m_frame;
-                m_frame = 0;
-                m_clock.restart();
-            }
-    
-            ++m_frame;
-        }
-
-        ImGui::SFML::Shutdown();
-        render_system.destroy();
-        window.close();
-
+    if (vkAllocateCommandBuffers(vulkanContext->getDevice(), &allocInfo,
+                                 commandBuffers.data()) != VK_SUCCESS) {
+      throw std::runtime_error("failed to allocate command buffers!");
     }
-}
+  }
 
+  void createSyncObjects() {
+    imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
+    inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
+
+    VkSemaphoreCreateInfo semaphoreInfo{};
+    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    VkFenceCreateInfo fenceInfo{};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+      if (vkCreateSemaphore(vulkanContext->getDevice(), &semaphoreInfo, nullptr,
+                            &imageAvailableSemaphores[i]) != VK_SUCCESS ||
+          vkCreateSemaphore(vulkanContext->getDevice(), &semaphoreInfo, nullptr,
+                            &renderFinishedSemaphores[i]) != VK_SUCCESS ||
+          vkCreateFence(vulkanContext->getDevice(), &fenceInfo, nullptr,
+                        &inFlightFences[i]) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create synchronization objects!");
+      }
+    }
+  }
+
+  void initImGui() {
+    // Create descriptor pool for ImGui
+    VkDescriptorPoolSize pool_sizes[] = {
+        {VK_DESCRIPTOR_TYPE_SAMPLER, 1000},
+        {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000},
+        {VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000},
+        {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000},
+        {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000},
+        {VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000}};
+
+    VkDescriptorPoolCreateInfo pool_info = {};
+    pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+    pool_info.maxSets = 1000;
+    pool_info.poolSizeCount = std::size(pool_sizes);
+    pool_info.pPoolSizes = pool_sizes;
+
+    if (vkCreateDescriptorPool(vulkanContext->getDevice(), &pool_info, nullptr,
+                               &imguiDescriptorPool) != VK_SUCCESS) {
+      throw std::runtime_error("Failed to create ImGui descriptor pool!");
+    }
+
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+
+    // Setup Dear ImGui style
+    ImGui::StyleColorsDark();
+
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForVulkan(window, true);
+    ImGui_ImplVulkan_InitInfo init_info = {};
+    init_info.Instance = vulkanContext->getInstance();
+    init_info.PhysicalDevice = vulkanContext->getPhysicalDevice();
+    init_info.Device = vulkanContext->getDevice();
+    init_info.QueueFamily =
+        vulkanContext->getQueueFamilies().graphicsFamily.value();
+    init_info.Queue = vulkanContext->getGraphicsQueue();
+    init_info.PipelineCache = VK_NULL_HANDLE;
+    init_info.DescriptorPool = imguiDescriptorPool;
+    init_info.Subpass = 0;
+    init_info.MinImageCount = 2;
+    init_info.ImageCount = swapchain->getImages().size();
+    init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    init_info.Allocator = nullptr;
+    init_info.CheckVkResultFn = nullptr;
+
+    ImGui_ImplVulkan_Init(&init_info, renderPass->getFinalRenderPass());
+
+    // Upload Fonts
+    VkCommandBuffer command_buffer = vulkanContext->beginSingleTimeCommands();
+    ImGui_ImplVulkan_CreateFontsTexture(command_buffer);
+    vulkanContext->endSingleTimeCommands(command_buffer);
+    ImGui_ImplVulkan_DestroyFontUploadObjects();
+
+    std::cout << "ImGui initialized successfully!" << std::endl;
+  }
+
+  void initializeLights() {
+    // Initialize default lights using LightingManager
+    lightingManager.initializeDefaultLights();
+
+    // Create DebugUI instance now that entity_manager exists
+    debugUI = std::make_unique<dunkan::DebugUI>(config, lightingManager);
+  }
+
+  void updateLightingUBO() {
+    // Update SSAO parameters from config
+    ssao->updateParameters(config.ssaoRadius, config.ssaoBias,
+                           config.ssaoPower);
+
+    // Update lighting UBO using LightingManager
+    glm::vec3 viewPos = glm::vec3(960.0f, 540.0f, 10.0f);
+    lightingManager.updateLightingUBO(renderSystem->getLightingUBO(),
+                                      config.ambientLight, viewPos);
+  }
+
+  void renderDebugUI() {
+    // Start ImGui frame
+    ImGui_ImplVulkan_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // Rebuild entity cache each frame (pointers to actual components)
+    entityEditCache.clear();
+    entity_manager.foreach<VulkanRenderSystem_c, VulkanRenderSystem_t>(
+        [&](Entity &, RenderComponent &renderComp,
+            PhysicsComponent &physicsComp) {
+          entityEditCache.push_back(
+              {&renderComp, &physicsComp, renderComp.albedoTextureName});
+        });
+
+    // Render debug UI using component
+    debugUI->render(m_fps, entity_manager.get_entities_count(),
+                    entityEditCache);
+
+    // Finish ImGui frame
+    ImGui::Render();
+  }
+
+  void loadGameEntities() {
+    std::cout << "Loading game entities..." << std::endl;
+
+    try {
+      // Load all textures first
+      std::cout << "Loading textures from data folder..." << std::endl;
+
+      // Abbey textures
+      std::cout << "Loading Abbey textures..." << std::endl;
+      renderSystem->loadTexture("abbey_albedo", "data/abbey_albedo.png",
+                                "data/abbey_height.png");
+      renderSystem->loadTexture("abbey_normal", "data/abbey_normal.png");
+      renderSystem->loadTexture("abbey_height", "data/abbey_height.png");
+
+      // Tree textures
+      renderSystem->loadTexture("tree_albedo", "data/tree_albedo.png",
+                                "data/tree_height.png");
+      renderSystem->loadTexture("tree_normal", "data/tree_normal.png");
+      renderSystem->loadTexture("tree_height", "data/tree_height.png");
+      renderSystem->loadTexture("tree_material", "data/tree_material.png");
+
+      // Teapot textures
+      renderSystem->loadTexture("teapot_albedo", "data/teapot_albedo.png",
+                                "data/teapot_height.png");
+      renderSystem->loadTexture("teapot_normal", "data/teapot_normal.png");
+      renderSystem->loadTexture("teapot_height", "data/teapot_height.png");
+
+      // Torus textures
+      renderSystem->loadTexture("torus_albedo", "data/torus_albedo.png",
+                                "data/torus_height.png");
+      renderSystem->loadTexture("torus_normal", "data/torus_normal.png");
+      renderSystem->loadTexture("torus_height", "data/torus_height.png");
+      renderSystem->loadTexture("torus_material", "data/torus_material.png");
+
+      // Ground (wetsand) textures
+      renderSystem->loadTexture("wetsand_albedo", "data/wetsand_albedo.png",
+                                "data/wetsand_height.png");
+      renderSystem->loadTexture("wetsand_normal", "data/wetsand_normal.png");
+      renderSystem->loadTexture("wetsand_height", "data/wetsand_height.png");
+      renderSystem->loadTexture("wetsand_material",
+                                "data/wetsand_material.png");
+
+      std::cout << "Textures loaded successfully!" << std::endl;
+
+      // Create Abbey entity
+      Entity &abbey = entity_manager.create_entity();
+      entity_manager.add_component<PhysicsComponent>(
+          abbey, PhysicsComponent{.x = 800.f, .y = 400.f, .z = 0.7f});
+      entity_manager.add_component<RenderComponent>(
+          abbey,
+          RenderComponent{nullptr, // Will be set by texture name lookup
+                          glm::vec4(0, 0, 1024, 1024), // Texture rect
+                          10.0f,                       // height
+                          1.0f,                        // scale
+                          "abbey_albedo", "abbey_normal", "abbey_height"});
+
+      // Create Trees (3 trees scattered around)
+      for (int i = 0; i < 3; i++) {
+        Entity &tree = entity_manager.create_entity();
+        entity_manager.add_component<PhysicsComponent>(
+            tree, PhysicsComponent{.x = 300.f + i * 400.f,
+                                   .y = 600.f + (i % 2) * 100.f,
+                                   .z = 0.6f});
+        entity_manager.add_component<RenderComponent>(
+            tree, RenderComponent{nullptr, glm::vec4(0, 0, 256, 512), 12.0f,
+                                  1.0f, "tree_albedo", "tree_normal",
+                                  "tree_height", "tree_material"});
+      }
+
+      // Create Teapot entity
+      Entity &teapot = entity_manager.create_entity();
+      entity_manager.add_component<PhysicsComponent>(
+          teapot, PhysicsComponent{.x = 1200.f, .y = 300.f, .z = 0.5f});
+      entity_manager.add_component<RenderComponent>(
+          teapot,
+          RenderComponent{nullptr, glm::vec4(0, 0, 200, 200), 8.0f, 1.0f,
+                          "teapot_albedo", "teapot_normal", "teapot_height"});
+
+      // Create Torus entity
+      Entity &torus = entity_manager.create_entity();
+      entity_manager.add_component<PhysicsComponent>(
+          torus, PhysicsComponent{.x = 500.f, .y = 200.f, .z = 0.4f});
+      entity_manager.add_component<RenderComponent>(
+          torus, RenderComponent{nullptr, glm::vec4(0, 0, 180, 180), 7.0f, 1.0f,
+                                 "torus_albedo", "torus_normal", "torus_height",
+                                 "torus_material"});
+
+      // Create Ground plane
+      Entity &ground = entity_manager.create_entity();
+      entity_manager.add_component<PhysicsComponent>(
+          ground, PhysicsComponent{
+                      .x = 10.f, // Center of 1920
+                      .y = 70.f,
+                      .z = -1.0f // Bottom layer
+                  });
+      entity_manager.add_component<RenderComponent>(
+          ground, RenderComponent{
+                      nullptr, glm::vec4(0, 0, 512, 512), // Large ground tile
+                      1.0f,
+                      1.5f, // Scaled up
+                      "wetsand_albedo", "wetsand_normal", "wetsand_height",
+                      "wetsand_material"});
+
+      std::cout << "Entities created: " << entity_manager.get_entities_count()
+                << std::endl;
+
+    } catch (const std::exception &e) {
+      std::cerr << "Error loading game entities: " << e.what() << std::endl;
+    }
+  }
+
+  void recordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS) {
+      throw std::runtime_error("failed to begin recording command buffer!");
+    }
+
+    // 1. G-Buffer Pass (Off-screen)
+    renderSystem->prepareFrame(commandBuffer, currentFrame);
+    renderSystem->renderEntities(commandBuffer, currentFrame);
+
+    // 2. SSAO Pass (Off-screen) - Only if enabled
+    if (config.enableSSAO) {
+      VkRenderPassBeginInfo ssaoPassInfo{};
+      ssaoPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+      ssaoPassInfo.renderPass = renderPass->getSSAORenderPass();
+      ssaoPassInfo.framebuffer = ssao->framebuffer;
+      ssaoPassInfo.renderArea.offset = {0, 0};
+      ssaoPassInfo.renderArea.extent = swapchain->getExtent();
+
+      VkClearValue clearValue = {{0.0f, 0.0f, 0.0f, 1.0f}};
+      ssaoPassInfo.clearValueCount = 1;
+      ssaoPassInfo.pClearValues = &clearValue;
+
+      vkCmdBeginRenderPass(commandBuffer, &ssaoPassInfo,
+                           VK_SUBPASS_CONTENTS_INLINE);
+
+      vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        ssao->pipeline);
+      vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                              ssao->pipelineLayout, 0, 1, &ssao->descriptorSet,
+                              0, nullptr);
+
+      // Update SSAO uniforms (projection matrix)
+      glm::mat4 projection =
+          glm::ortho(0.0f, 1920.0f, 1080.0f, 0.0f, -100.0f, 100.0f);
+      ssao->update(commandBuffer, projection);
+
+      vkCmdDraw(commandBuffer, 3, 1, 0, 0); // Full screen triangle
+
+      vkCmdEndRenderPass(commandBuffer);
+    }
+
+    // 3. Final Composition Pass (To Swapchain)
+    VkRenderPassBeginInfo renderPassInfo{};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = renderPass->getFinalRenderPass();
+    renderPassInfo.framebuffer = swapchain->getFramebuffers()[imageIndex];
+    renderPassInfo.renderArea.offset = {0, 0};
+    renderPassInfo.renderArea.extent = swapchain->getExtent();
+
+    VkClearValue clearColor = {{{0.1f, 0.1f, 0.15f, 1.0f}}};
+    renderPassInfo.clearValueCount = 1;
+    renderPassInfo.pClearValues = &clearColor;
+
+    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo,
+                         VK_SUBPASS_CONTENTS_INLINE);
+
+    // Render full screen quad combining G-Buffer attachments
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                      compPipeline->getPipeline());
+
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            compPipeline->getLayout(), 0, 1, &compDescriptorSet,
+                            0, nullptr);
+
+    // Push constants for debug view mode, SSAO enable, and gamma
+    struct {
+      int debugViewMode;
+      int enableSSAO;
+      float gamma;
+    } pushConstants;
+    pushConstants.debugViewMode = static_cast<int>(config.currentDebugView);
+    pushConstants.enableSSAO = config.enableSSAO ? 1 : 0;
+    pushConstants.gamma = config.gammaCorrection;
+
+    vkCmdPushConstants(commandBuffer, compPipeline->getLayout(),
+                       VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(pushConstants),
+                       &pushConstants);
+
+    vkCmdDraw(commandBuffer, 3, 1, 0, 0); // Full screen triangle
+
+    // Render ImGui on top
+    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+
+    vkCmdEndRenderPass(commandBuffer);
+
+    if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+      throw std::runtime_error("failed to record command buffer!");
+    }
+  }
+
+  void drawFrame() {
+    vkWaitForFences(vulkanContext->getDevice(), 1,
+                    &inFlightFences[currentFrame], VK_TRUE, UINT64_MAX);
+
+    uint32_t imageIndex;
+    VkResult result = vkAcquireNextImageKHR(
+        vulkanContext->getDevice(), swapchain->getSwapchain(), UINT64_MAX,
+        imageAvailableSemaphores[currentFrame], VK_NULL_HANDLE, &imageIndex);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+      swapchain->recreate();
+      swapchain->createFramebuffers(renderPass->getFinalRenderPass());
+      return;
+    } else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+      throw std::runtime_error("failed to acquire swap chain image!");
+    }
+
+    vkResetFences(vulkanContext->getDevice(), 1, &inFlightFences[currentFrame]);
+
+    // Build ImGui UI for this frame
+    renderDebugUI();
+
+    vkResetCommandBuffer(commandBuffers[currentFrame], 0);
+    recordCommandBuffer(commandBuffers[currentFrame], imageIndex);
+
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[] = {imageAvailableSemaphores[currentFrame]};
+    VkPipelineStageFlags waitStages[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = waitSemaphores;
+    submitInfo.pWaitDstStageMask = waitStages;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffers[currentFrame];
+
+    VkSemaphore signalSemaphores[] = {renderFinishedSemaphores[currentFrame]};
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = signalSemaphores;
+
+    if (vkQueueSubmit(vulkanContext->getGraphicsQueue(), 1, &submitInfo,
+                      inFlightFences[currentFrame]) != VK_SUCCESS) {
+      throw std::runtime_error("failed to submit draw command buffer!");
+    }
+
+    VkPresentInfoKHR presentInfo{};
+    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores = signalSemaphores;
+
+    VkSwapchainKHR swapChains[] = {swapchain->getSwapchain()};
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = swapChains;
+    presentInfo.pImageIndices = &imageIndex;
+
+    result = vkQueuePresentKHR(vulkanContext->getPresentQueue(), &presentInfo);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+      swapchain->recreate();
+      swapchain->createFramebuffers(renderPass->getFinalRenderPass());
+    } else if (result != VK_SUCCESS) {
+      throw std::runtime_error("failed to present swap chain image!");
+    }
+
+    currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+  }
+
+  void mainLoop() {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    auto last_fps_time = std::chrono::high_resolution_clock::now();
+    int frame_count = 0;
+
+    while (!glfwWindowShouldClose(window)) {
+      glfwPollEvents();
+
+      // Update lighting UBO each frame from ImGui state
+      updateLightingUBO();
+
+      drawFrame();
+
+      frame_count++;
+      auto current_time = std::chrono::high_resolution_clock::now();
+      auto elapsed_fps = std::chrono::duration_cast<std::chrono::seconds>(
+                             current_time - last_fps_time)
+                             .count();
+      if (elapsed_fps >= 1) {
+        m_fps = frame_count;
+        frame_count = 0;
+        last_fps_time = current_time;
+      }
+    }
+
+    vkDeviceWaitIdle(vulkanContext->getDevice());
+  }
+
+  void cleanup() {
+    vkDeviceWaitIdle(vulkanContext->getDevice());
+
+    // Cleanup ImGui
+    ImGui_ImplVulkan_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    if (imguiDescriptorPool != VK_NULL_HANDLE) {
+      vkDestroyDescriptorPool(vulkanContext->getDevice(), imguiDescriptorPool,
+                              nullptr);
+    }
+
+    for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+      vkDestroySemaphore(vulkanContext->getDevice(),
+                         renderFinishedSemaphores[i], nullptr);
+      vkDestroySemaphore(vulkanContext->getDevice(),
+                         imageAvailableSemaphores[i], nullptr);
+      vkDestroyFence(vulkanContext->getDevice(), inFlightFences[i], nullptr);
+    }
+
+    delete ssao;
+    delete renderSystem;
+    delete descriptorManager;
+    delete pipeline;
+    delete compPipeline;
+    delete renderPass;
+    delete swapchain;
+    delete vulkanContext;
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
+  }
+};
 
 int main() {
-    sf::RenderWindow window;
-    sf::VideoMode video_mode(1920, 1080, 32);
+  VulkanApplication app;
 
-    sf::View view = window.getView();
-    view.setSize(video_mode.width, video_mode.height);
-    view.setCenter(video_mode.width / 2, video_mode.height / 2);
+  try {
+    app.run();
+  } catch (const std::exception &e) {
+    std::cerr << "Error: " << e.what() << std::endl;
+    return EXIT_FAILURE;
+  }
 
-    sf::ContextSettings context_settings;
-    context_settings.depthBits = 24;
-    context_settings.stencilBits = 8;
-    context_settings.antialiasingLevel = 4;
-    context_settings.attributeFlags = sf::ContextSettings::Core;
-
-    window.create(video_mode, "Window", sf::Style::Close | sf::Style::Resize, context_settings);
-    window.setView(view);
-
-    update(window);
+  return EXIT_SUCCESS;
 }
