@@ -358,40 +358,26 @@ private:
       // Load all textures first
       std::cout << "Loading textures from data folder..." << std::endl;
 
-      // Abbey textures
+      // Abbey textures (albedo, depth, normal, no material)
       std::cout << "Loading Abbey textures..." << std::endl;
       renderSystem->loadTexture("abbey_albedo", "data/abbey_albedo.png",
-                                "data/abbey_height.png");
-      renderSystem->loadTexture("abbey_normal", "data/abbey_normal.png");
-      renderSystem->loadTexture("abbey_height", "data/abbey_height.png");
+                                "data/abbey_height.png", "data/abbey_normal.png", "");
 
-      // Tree textures
+      // Tree textures (albedo, depth, normal, material)
       renderSystem->loadTexture("tree_albedo", "data/tree_albedo.png",
-                                "data/tree_height.png");
-      renderSystem->loadTexture("tree_normal", "data/tree_normal.png");
-      renderSystem->loadTexture("tree_height", "data/tree_height.png");
-      renderSystem->loadTexture("tree_material", "data/tree_material.png");
+                                "data/tree_height.png", "data/tree_normal.png", "data/tree_material.png");
 
-      // Teapot textures
+      // Teapot textures (albedo, depth, normal, no material)
       renderSystem->loadTexture("teapot_albedo", "data/teapot_albedo.png",
-                                "data/teapot_height.png");
-      renderSystem->loadTexture("teapot_normal", "data/teapot_normal.png");
-      renderSystem->loadTexture("teapot_height", "data/teapot_height.png");
+                                "data/teapot_height.png", "data/teapot_normal.png", "");
 
-      // Torus textures
+      // Torus textures (albedo, depth, normal, material)
       renderSystem->loadTexture("torus_albedo", "data/torus_albedo.png",
-                                "data/torus_height.png");
-      renderSystem->loadTexture("torus_normal", "data/torus_normal.png");
-      renderSystem->loadTexture("torus_height", "data/torus_height.png");
-      renderSystem->loadTexture("torus_material", "data/torus_material.png");
+                                "data/torus_height.png", "data/torus_normal.png", "data/torus_material.png");
 
-      // Ground (wetsand) textures
+      // Ground (wetsand) textures (albedo, depth, normal, material)
       renderSystem->loadTexture("wetsand_albedo", "data/wetsand_albedo.png",
-                                "data/wetsand_height.png");
-      renderSystem->loadTexture("wetsand_normal", "data/wetsand_normal.png");
-      renderSystem->loadTexture("wetsand_height", "data/wetsand_height.png");
-      renderSystem->loadTexture("wetsand_material",
-                                "data/wetsand_material.png");
+                                "data/wetsand_height.png", "data/wetsand_normal.png", "data/wetsand_material.png");
 
       std::cout << "Textures loaded successfully!" << std::endl;
 

@@ -1,7 +1,6 @@
 #pragma once
 
-#include <imgui.h>
-#include <imgui-SFML.h>
+#include <glm/glm.hpp>
 
 struct PhysicsComponent {
 
@@ -10,12 +9,12 @@ struct PhysicsComponent {
     float velocity_y{};
     float velocity_z{};
 
-    sf::Vector3f position() {
-        return position(sf::Vector2f{0.0, 0.0});
+    glm::vec3 position() {
+        return position(glm::vec2{0.0, 0.0});
     }
 
-    sf::Vector3f position(sf::Vector2f shift) {
-        return sf::Vector3f{x - shift.x, y - z - shift.y, z};
+    glm::vec3 position(glm::vec2 shift) {
+        return glm::vec3{x - shift.x, y - z - shift.y, z};
     }
     
 };

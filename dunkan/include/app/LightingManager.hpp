@@ -46,9 +46,10 @@ struct Light {
  * @brief Lighting UBO matching shader layout
  */
 struct LightingUBO {
-  glm::vec4 ambientLight;
-  glm::vec3 viewPos;
-  int numLights;
+  alignas(16) glm::vec4 ambientLight;
+  alignas(16) glm::vec3 viewPos;
+  alignas(4) int numLights;
+  alignas(16) glm::vec4 viewOffsetPadded;  // xy = viewOffset, zw = padding
   Light lights[10];
 };
 

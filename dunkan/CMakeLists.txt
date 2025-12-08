@@ -162,14 +162,14 @@ endif()
 # Post-build: Copy shaders and data to bin directory for standalone execution
 add_custom_command(TARGET app POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/../shaders
-        ${CMAKE_SOURCE_DIR}/bin/shaders
+        ${CMAKE_CURRENT_SOURCE_DIR}/../shaders
+        ${CMAKE_CURRENT_SOURCE_DIR}/bin/shaders
     COMMENT "Copying shaders to bin directory"
 )
 
 add_custom_command(TARGET app POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/../data
-        ${CMAKE_SOURCE_DIR}/bin/data
+        ${CMAKE_CURRENT_SOURCE_DIR}/../data
+        ${CMAKE_CURRENT_SOURCE_DIR}/bin/data
     COMMENT "Copying data to bin directory"
 )

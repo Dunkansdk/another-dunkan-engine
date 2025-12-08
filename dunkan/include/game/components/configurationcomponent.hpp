@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include "vulkan/VulkanTypes.hpp"
 
 struct ConfigurationComponent {
 
@@ -11,6 +11,6 @@ struct ConfigurationComponent {
 
     int debug_screen{0};
 
-    sf::Color ambient_light{sf::Color{ 124, 124, 132, 255 }};
+    Color4 ambient_light{Color4(124, 124, 132, 255)};
 
 };

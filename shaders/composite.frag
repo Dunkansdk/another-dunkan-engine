@@ -23,6 +23,7 @@ layout (binding = 5) uniform LightingUBO {
     vec4 ambientLight;
     vec3 viewPos;
     int numLights;
+    vec4 viewOffsetPadded;    // xy = viewOffset, zw = padding (for proper alignment before array)
     Light lights[10];
 } lighting;
 
@@ -180,7 +181,12 @@ void main()
     // Fragment position for isometric 2.5D - use depth from heightmap
     vec4 depthData = texture(samplerDepth, inUV);
     float depth = depthData.a * 100.0; // Reconstruct depth from alpha channel
-    vec3 fragPos = vec3(inUV.x * 1920.0, inUV.y * 1080.0, depth);
+    
+    // Convert screen-space UV to world-space position with view offset
+    // This ensures point lights render circularly in isometric view
+    vec3 fragPos = vec3(inUV.x * 1920.0 + lighting.viewOffsetPadded.x, 
+                        inUV.y * 1080.0 + lighting.viewOffsetPadded.y, 
+                        depth);
     
     // View position for isometric camera (positioned above and to the side)
     vec3 viewPos = vec3(960.0, 540.0, 500.0);  // Camera high above scene

@@ -1,6 +1,7 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include <glm/glm.hpp>
+#include "vulkan/VulkanTypes.hpp"
 
 enum LightType {
     SPOT, 
@@ -12,10 +13,10 @@ struct LightComponent {
 
     LightType light_type{LightType::DIRECTIONAL};
 
-    sf::Color diffuse_color {sf::Color::White};
-    sf::Color specular_color {sf::Color::White};
+    Color4 diffuse_color {Color4::White};
+    Color4 specular_color {Color4::White};
 
-    sf::Vector3f direction {0.0f, 0.0f, -1.0f};
+    glm::vec3 direction {0.0f, 0.0f, -1.0f};
 
     float radius{100.f};
     float intensity{1.f};

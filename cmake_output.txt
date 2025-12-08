@@ -1,0 +1,11 @@
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 6.2.9200.
+CMake Error at C:/Users/Emanuel/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/share/cmake-4.1/Modules/FindPackageHandleStandardArgs.cmake:227 (message):
+  Could NOT find Vulkan (missing: Vulkan_LIBRARY Vulkan_INCLUDE_DIR glslc)
+  (found version "")
+Call Stack (most recent call first):
+  C:/Users/Emanuel/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/share/cmake-4.1/Modules/FindPackageHandleStandardArgs.cmake:591 (_FPHSA_FAILURE_MESSAGE)
+  C:/Users/Emanuel/AppData/Local/Microsoft/WinGet/Packages/BrechtSanders.WinLibs.POSIX.UCRT_Microsoft.Winget.Source_8wekyb3d8bbwe/mingw64/share/cmake-4.1/Modules/FindVulkan.cmake:689 (find_package_handle_standard_args)
+  dunkan/CMakeLists.txt:12 (find_package)
+
+
+-- Configuring incomplete, errors occurred!

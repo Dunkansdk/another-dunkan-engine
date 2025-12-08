@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include <map>
 
 enum ShadowCastingType {
     NO_SHADOW,
@@ -8,6 +8,8 @@ enum ShadowCastingType {
     DYNAMIC,
     ALL_SHADOWS
 };
+
+struct LightComponent;  // Forward declaration
 
 struct ShadowComponent {
 
@@ -19,8 +21,7 @@ struct ShadowComponent {
     
     ShadowCastingType shadow_type{};
     
-    std::map<LightComponent*, sf::Texture>  m_shadow_map{};
-    std::map<LightComponent*, sf::Sprite>   m_shadow_sprite{};
-    std::map<LightComponent* ,sf::IntRect>  m_shadow_max_shift{};
+    // TODO: Implement shadow maps with Vulkan textures
+    // std::map<LightComponent*, VulkanImage*> m_shadow_map{};
 
-};  
+};

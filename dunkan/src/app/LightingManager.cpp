@@ -30,6 +30,10 @@ void LightingManager::updateLightingUBO(VulkanBuffer *lightingUBO,
   ubo.ambientLight = glm::vec4(ambientLight, 1.0f);
   ubo.viewPos = viewPos;
   ubo.numLights = 0;
+  
+  // Set view offset (camera center) for world-space light calculations
+  // This ensures circular point light falloff in isometric view
+  ubo.viewOffsetPadded = glm::vec4(viewPos.x, viewPos.y, 0.0f, 0.0f);
 
   for (size_t i = 0; i < lights.size() && i < 10; i++) {
     if (!lights[i].enabled)
@@ -77,6 +81,32 @@ void LightingManager::initializeDefaultLights() {
   rim.cutoffAngle = 0.0f;
   rim.enabled = true;
   addLight(rim);
+  
+  // Point light 1 (warm orange, center-left)
+  // Tests circular falloff in isometric XZ plane
+  LightConfig point1;
+  point1.type = 1; // Point light
+  point1.position = glm::vec3(600.0f, 400.0f, 15.0f); // XZ horizontal position, Y height
+  point1.direction = glm::vec3(0.0f, -1.0f, 0.0f); // Not used for point lights
+  point1.color = glm::vec3(1.0f, 0.6f, 0.3f);      // Warm orange
+  point1.intensity = 1.5f;
+  point1.radius = 300.0f; // Circular radius in world space
+  point1.cutoffAngle = 0.0f;
+  point1.enabled = true;
+  addLight(point1);
+  
+  // Point light 2 (cool blue, center-right)
+  // Tests circular falloff in isometric XZ plane
+  LightConfig point2;
+  point2.type = 1; // Point light
+  point2.position = glm::vec3(1300.0f, 600.0f, 20.0f); // XZ horizontal position, Y height
+  point2.direction = glm::vec3(0.0f, -1.0f, 0.0f); // Not used for point lights
+  point2.color = glm::vec3(0.3f, 0.5f, 1.0f);      // Cool blue
+  point2.intensity = 1.2f;
+  point2.radius = 250.0f; // Circular radius in world space
+  point2.cutoffAngle = 0.0f;
+  point2.enabled = true;
+  addLight(point2);
 }
 
 } // namespace dunkan
