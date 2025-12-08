@@ -121,13 +121,28 @@ void VulkanPipeline::createGraphicsPipeline(
     for(uint32_t i = 0; i < attachmentCount; i++) {
         colorBlendAttachments[i].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                                               VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachments[i].blendEnable = VK_TRUE;
-        colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-        colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-        colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
-        colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-        colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-        colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+        
+        // Enable blending ONLY for depth buffer (attachment 2)
+        // Attachments: 0=Albedo, 1=Normal, 2=Depth, 3=Material
+        if (i == 2) {
+            // Depth buffer: use alpha blending
+            colorBlendAttachments[i].blendEnable = VK_TRUE;
+            colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+            colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+            colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
+            colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+            colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+            colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+        } else {
+            // All other buffers: no blending, depth test determines visibility
+            colorBlendAttachments[i].blendEnable = VK_FALSE;
+            colorBlendAttachments[i].srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+            colorBlendAttachments[i].dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+            colorBlendAttachments[i].colorBlendOp = VK_BLEND_OP_ADD;
+            colorBlendAttachments[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+            colorBlendAttachments[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+            colorBlendAttachments[i].alphaBlendOp = VK_BLEND_OP_ADD;
+        }
     }
     
     VkPipelineColorBlendStateCreateInfo colorBlending{};

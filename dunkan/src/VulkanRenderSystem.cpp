@@ -178,11 +178,11 @@ void VulkanRenderSystem::renderEntities(VkCommandBuffer commandBuffer, uint32_t 
     renderPassInfo.renderArea.extent = {m_gbuffer.width, m_gbuffer.height};
     
     std::array<VkClearValue, 5> clearValues{};
-    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 1.0f}}; // Color
-    clearValues[1].color = {{0.0f, 0.0f, 0.0f, 1.0f}}; // Normal
-    clearValues[2].color = {{0.0f, 0.0f, 0.0f, 1.0f}}; // Depth
-    clearValues[3].color = {{0.0f, 0.0f, 0.0f, 1.0f}}; // Material
-    clearValues[4].depthStencil = {1.0f, 0};           // Depth/Stencil
+    clearValues[0].color = {{0.0f, 0.0f, 0.0f, 0.0f}}; // Color (transparent)
+    clearValues[1].color = {{0.5f, 0.5f, 1.0f, 0.0f}}; // Normal (forward-facing default: unpacks to (0,0,1))
+    clearValues[2].color = {{0.0f, 0.0f, 0.0f, 0.0f}}; // Depth (no depth)
+    clearValues[3].color = {{0.0f, 0.0f, 0.0f, 0.0f}}; // Material (no material)
+    clearValues[4].depthStencil = {1.0f, 0};           // Depth/Stencil (far plane)
     
     renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
     renderPassInfo.pClearValues = clearValues.data();
@@ -228,6 +228,10 @@ void VulkanRenderSystem::renderEntities(VkCommandBuffer commandBuffer, uint32_t 
             float z_position;
             float height;
             int useDepthMap;
+            float roughness;
+            float metalness;
+            float translucency;
+            int useMaterialMap; // Whether to use material texture or push constant values
         } pushConstants;
         
         // Apply scale and translate
@@ -237,6 +241,10 @@ void VulkanRenderSystem::renderEntities(VkCommandBuffer commandBuffer, uint32_t 
         pushConstants.z_position = physicsComp.z;
         pushConstants.height = renderComp.height;
         pushConstants.useDepthMap = (!renderComp.depthTextureName.empty()) ? 1 : 0;
+        pushConstants.roughness = renderComp.roughness;
+        pushConstants.metalness = renderComp.metalness;
+        pushConstants.translucency = renderComp.translucency;
+        pushConstants.useMaterialMap = (!renderComp.materialTextureName.empty()) ? 1 : 0;
         
         vkCmdPushConstants(commandBuffer, m_pipeline.getLayout(),
                           VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,

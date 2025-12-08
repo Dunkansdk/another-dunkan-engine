@@ -20,6 +20,10 @@ layout(push_constant) uniform PushConstants {
     float z_position;
     float height;
     bool useDepthMap;
+    float roughness;
+    float metalness;
+    float translucency;
+    bool useMaterialMap; // Whether to use material texture or push constant values
 } pushConstants;
 
 void main()
@@ -78,17 +82,13 @@ void main()
     outDepth = vec4(heightmap_pixel.rgb, z_pixel / 100.0);
     
     // Output 3: Material Properties (R: Roughness, G: Metalness, B: AO)
-    // Sample from material map, or use default values
-    vec4 materialSample = texture(material_map, fragTexCoord);
-    
-    // Check if material map has meaningful data (not default white/gray)
-    bool hasMaterialMap = length(materialSample.rgb - vec3(1.0)) > 0.01 || 
-                          length(materialSample.rgb - vec3(0.5)) > 0.01;
-    
-    if (hasMaterialMap) {
+    if (pushConstants.useMaterialMap) {
+        // Use material map texture values
+        vec4 materialSample = texture(material_map, fragTexCoord);
         outMaterial = vec4(materialSample.rgb, 1.0);
     } else {
-        // Default: moderate roughness, no metalness, full AO
-        outMaterial = vec4(0.5, 0.0, 1.0, 1.0);
+        // Use PBR values from push constants (set in Entity Editor UI)
+        // R: Roughness, G: Metalness, B: AO (always 1.0 for now)
+        outMaterial = vec4(pushConstants.roughness, pushConstants.metalness, 1.0, 1.0);
     }
 }

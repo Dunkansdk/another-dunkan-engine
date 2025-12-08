@@ -612,10 +612,19 @@ private:
   void mainLoop() {
     auto start_time = std::chrono::high_resolution_clock::now();
     auto last_fps_time = std::chrono::high_resolution_clock::now();
+    auto last_frame_time = std::chrono::high_resolution_clock::now();
     int frame_count = 0;
 
     while (!glfwWindowShouldClose(window)) {
       glfwPollEvents();
+      
+      // Calculate delta time for animations
+      auto current_time = std::chrono::high_resolution_clock::now();
+      float deltaTime = std::chrono::duration<float>(current_time - last_frame_time).count();
+      last_frame_time = current_time;
+      
+      // Update animated lights (spotlights)
+      lightingManager.updateAnimatedLights(deltaTime);
 
       // Update lighting UBO each frame from ImGui state
       updateLightingUBO();
@@ -623,7 +632,6 @@ private:
       drawFrame();
 
       frame_count++;
-      auto current_time = std::chrono::high_resolution_clock::now();
       auto elapsed_fps = std::chrono::duration_cast<std::chrono::seconds>(
                              current_time - last_fps_time)
                              .count();

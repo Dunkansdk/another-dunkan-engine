@@ -77,6 +77,9 @@ public:
   void updateLightingUBO(VulkanBuffer *lightingUBO,
                          const glm::vec3 &ambientLight,
                          const glm::vec3 &viewPos);
+  
+  // Animation
+  void updateAnimatedLights(float deltaTime);
 
   // Initialization
   void initializeDefaultLights();

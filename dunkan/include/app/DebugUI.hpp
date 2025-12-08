@@ -47,13 +47,19 @@ private:
   ApplicationConfig &config;
   LightingManager &lightingMgr;
 
-  // Panel rendering methods
+  // Main panel rendering methods
   void renderGBufferViews();
   void renderSSAOPanel();
   void renderLightingPanel();
   void renderDepthDebug();
   void renderEntityEditor(const std::vector<EntityEditData> &entityCache);
   void renderRenderingSettings();
+  
+  // Sub-panel rendering methods (modular)
+  void renderLightControl(size_t index, LightConfig &light);
+  void renderEntityTransform(EntityEditData &data, int index);
+  void renderEntityMaterial(EntityEditData &data);
+  void renderEntityTextures(const EntityEditData &data);
 };
 
 } // namespace dunkan

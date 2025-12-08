@@ -20,18 +20,33 @@ layout(push_constant) uniform PushConstants {
 
 void main()
 {
-    float color_alpha = texture(color_map, fragTexCoord).a;
+    vec4 color_pixel = texture(color_map, fragTexCoord);
+    
+    // Discard transparent pixels - prevents lighting artifacts
+    if (color_pixel.a < 0.1) discard;
+    
+    // Sample depth map and calculate height
+    float height_pixel = 0.0; 
+    if(pushConstants.useDepthMap){
+        vec4 depth_pixel = texture(depth_map, fragTexCoord);
+        height_pixel = depth_pixel.r * pushConstants.height;
+        
+        // Discard pixels with no height information (depth map alpha channel)
+        // This prevents rendering normals for non-visible parts based on heightmap
+        if (depth_pixel.r < 0.01) discard;
+    }
+    
+    // Calculate normal direction
     vec3 direction = vec3(0.0, 0.0, 1.0);
     if(pushConstants.useNormalMap){
         direction = -1.0 + 2.0 * texture(normal_map, fragTexCoord).rgb;
     }
-    float height_pixel = 0.0; 
-    if(pushConstants.useDepthMap){
-        vec4 depth_pixel = texture(depth_map, fragTexCoord);
-        height_pixel = (depth_pixel.r + depth_pixel.g + depth_pixel.b) * 0.33 * pushConstants.height;
-    }
+    
+    // Calculate final depth for depth buffer
     float z_pixel = height_pixel + pushConstants.z_position;
-    gl_FragDepth = 1.0 - color_alpha * (0.5 + z_pixel * 0.001);
+    gl_FragDepth = 1.0 - color_pixel.a * (0.5 + z_pixel * 0.001);
+    
+    // Output normal in [0,1] range
     outColor.rgb = 0.5 + direction * 0.5;
-    outColor.a = color_alpha;
+    outColor.a = color_pixel.a;
 }

@@ -107,6 +107,58 @@ void LightingManager::initializeDefaultLights() {
   point2.cutoffAngle = 0.0f;
   point2.enabled = true;
   addLight(point2);
+  
+  // Spotlight 1 (moving, warm white)
+  LightConfig spot1;
+  spot1.type = 2; // Spot light
+  spot1.position = glm::vec3(400.0f, 200.0f, 30.0f); // Starting position
+  spot1.direction = glm::normalize(glm::vec3(0.5f, -1.0f, 0.3f)); // Angled downward
+  spot1.color = glm::vec3(1.0f, 0.9f, 0.7f);       // Warm white
+  spot1.intensity = 2.0f;
+  spot1.radius = 400.0f;
+  spot1.cutoffAngle = 25.0f; // Cone angle in degrees
+  spot1.enabled = true;
+  addLight(spot1);
+  
+  // Spotlight 2 (moving, cool cyan)
+  LightConfig spot2;
+  spot2.type = 2; // Spot light
+  spot2.position = glm::vec3(1500.0f, 800.0f, 35.0f); // Starting position
+  spot2.direction = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f)); // Angled downward
+  spot2.color = glm::vec3(0.4f, 0.8f, 1.0f);       // Cool cyan
+  spot2.intensity = 1.8f;
+  spot2.radius = 350.0f;
+  spot2.cutoffAngle = 30.0f; // Cone angle in degrees
+  spot2.enabled = true;
+  addLight(spot2);
+}
+
+void LightingManager::updateAnimatedLights(float deltaTime) {
+  static float time = 0.0f;
+  time += deltaTime;
+  
+  // Animate spotlights (indices 4 and 5 after directional and point lights)
+  if (lights.size() > 4) {
+    // Spotlight 1 - circular motion
+    float angle1 = time * 0.5f; // Slow rotation
+    lights[4].position.x = 960.0f + cos(angle1) * 500.0f;
+    lights[4].position.y = 540.0f + sin(angle1) * 300.0f;
+    
+    // Point direction toward center
+    glm::vec3 toCenter = glm::normalize(glm::vec3(960.0f, 540.0f, 0.0f) - lights[4].position);
+    lights[4].direction = glm::normalize(toCenter + glm::vec3(0.0f, -0.5f, 0.0f));
+  }
+  
+  if (lights.size() > 5) {
+    // Spotlight 2 - figure-8 motion
+    float angle2 = time * 0.7f; // Faster rotation
+    lights[5].position.x = 960.0f + sin(angle2) * 600.0f;
+    lights[5].position.y = 540.0f + sin(angle2 * 2.0f) * 250.0f;
+    
+    // Point direction toward center with offset
+    glm::vec3 toCenter = glm::normalize(glm::vec3(960.0f, 540.0f, 0.0f) - lights[5].position);
+    lights[5].direction = glm::normalize(toCenter + glm::vec3(0.0f, -0.6f, 0.0f));
+  }
 }
 
 } // namespace dunkan
