@@ -38,6 +38,16 @@ struct ApplicationConfig {
 
   // Ambient Lighting
   glm::vec3 ambientLight = glm::vec3(0.03f, 0.03f, 0.04f);
+
+  // Camera Configuration
+  glm::vec3 cameraPosition = glm::vec3(960.0f, 540.0f, 1000.0f); // Screen center
+  float cameraZoom = 1.0f;
+  bool cameraFollowEnabled = false;
+  int cameraFollowEntityIndex = 0;
+  float cameraFollowSmoothness = 5.0f;
+
+  // Gizmo Configuration
+  bool enableGizmos = true; // Gizmos for object/light manipulation
 };
 
 } // namespace dunkan
