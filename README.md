@@ -132,8 +132,5 @@ export VULKAN_SDK=/path/to/vulkan/sdk
 Ensure `glslangValidator` is in your PATH (included with Vulkan SDK).
 
 ## License
-[Add your license here]
-
-## Contributing
-[Add contribution guidelines here]
+...
 
