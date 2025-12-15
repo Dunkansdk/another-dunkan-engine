@@ -1,0 +1,62 @@
+[1/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/vulkan.c.obj
+[2/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_init.c.obj
+[3/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/monitor.c.obj
+[4/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/init.c.obj
+[5/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_joystick.c.obj
+[6/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/context.c.obj
+[7/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_time.c.obj
+[8/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/window.c.obj
+[9/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_thread.c.obj
+[10/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_monitor.c.obj
+[11/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/input.c.obj
+[12/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/osmesa_context.c.obj
+[13/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/egl_context.c.obj
+[14/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/wgl_context.c.obj
+[15/37] Building CXX object CMakeFiles/app.dir/src/VulkanGBuffer.cpp.obj
+[16/37] Building CXX object CMakeFiles/app.dir/src/VulkanRenderPass.cpp.obj
+[17/37] Building CXX object CMakeFiles/app.dir/src/VulkanBuffer.cpp.obj
+[18/37] Building CXX object CMakeFiles/app.dir/src/VulkanDescriptorManager.cpp.obj
+[19/37] Building C object _deps/glfw-build/src/CMakeFiles/glfw.dir/win32_window.c.obj
+[20/37] Building CXX object CMakeFiles/app.dir/_deps/imgui-src/backends/imgui_impl_vulkan.cpp.obj
+[21/37] Linking C static library _deps\glfw-build\src\libglfw3.a
+[22/37] Building CXX object CMakeFiles/app.dir/src/app/LightingManager.cpp.obj
+[23/37] Building CXX object CMakeFiles/app.dir/src/app/DebugUI.cpp.obj
+[24/37] Building CXX object CMakeFiles/app.dir/src/VulkanSwapchain.cpp.obj
+[25/37] Building CXX object CMakeFiles/app.dir/_deps/imgui-src/backends/imgui_impl_glfw.cpp.obj
+[26/37] Building CXX object CMakeFiles/app.dir/src/VulkanResourceManager.cpp.obj
+[27/37] Building CXX object CMakeFiles/app.dir/src/VulkanPipeline.cpp.obj
+[28/37] Building CXX object CMakeFiles/app.dir/src/VulkanImage.cpp.obj
+[29/37] Building CXX object CMakeFiles/app.dir/src/VulkanSSAO.cpp.obj
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanSSAO.cpp: In member function 'void VulkanSSAO::update(VkCommandBuffer, const glm::mat4&)':
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanSSAO.cpp:279:41: warning: unused parameter 'commandBuffer' [-Wunused-parameter]
+  279 | void VulkanSSAO::update(VkCommandBuffer commandBuffer, const glm::mat4& projection) {
+      |                         ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+[30/37] Building CXX object CMakeFiles/app.dir/src/VulkanContext.cpp.obj
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanContext.cpp: In function 'VkBool32 debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT, VkDebugUtilsMessageTypeFlagsEXT, const VkDebugUtilsMessengerCallbackDataEXT*, void*)':
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanContext.cpp:8:44: warning: unused parameter 'messageSeverity' [-Wunused-parameter]
+    8 |     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanContext.cpp:9:37: warning: unused parameter 'messageType' [-Wunused-parameter]
+    9 |     VkDebugUtilsMessageTypeFlagsEXT messageType,
+      |     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanContext.cpp:11:11: warning: unused parameter 'pUserData' [-Wunused-parameter]
+   11 |     void* pUserData) {
+      |     ~~~~~~^~~~~~~~~
+[31/37] Building CXX object CMakeFiles/app.dir/_deps/imgui-src/imgui_tables.cpp.obj
+[32/37] Building CXX object CMakeFiles/app.dir/_deps/imgui-src/imgui_draw.cpp.obj
+[33/37] Building CXX object CMakeFiles/app.dir/_deps/imgui-src/imgui_widgets.cpp.obj
+[34/37] Building CXX object CMakeFiles/app.dir/src/VulkanRenderSystem.cpp.obj
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanRenderSystem.cpp: In member function 'void VulkanRenderSystem::prepareFrame(VkCommandBuffer, uint32_t)':
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanRenderSystem.cpp:152:55: warning: unused parameter 'commandBuffer' [-Wunused-parameter]
+  152 | void VulkanRenderSystem::prepareFrame(VkCommandBuffer commandBuffer, uint32_t frameIndex) {
+      |                                       ~~~~~~~~~~~~~~~~^~~~~~~~~~~~~
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/VulkanRenderSystem.cpp:152:79: warning: unused parameter 'frameIndex' [-Wunused-parameter]
+  152 | void VulkanRenderSystem::prepareFrame(VkCommandBuffer commandBuffer, uint32_t frameIndex) {
+      |                                                                      ~~~~~~~~~^~~~~~~~~~
+[35/37] Building CXX object CMakeFiles/app.dir/src/main.cpp.obj
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/main.cpp: In member function 'void VulkanApplication::mainLoop()':
+C:/Users/Emanuel/Projects/another-dunkan-engine/dunkan/src/main.cpp:621:10: warning: variable 'start_time' set but not used [-Wunused-but-set-variable]
+  621 |     auto start_time = std::chrono::high_resolution_clock::now();
+      |          ^~~~~~~~~~
+[36/37] Building CXX object CMakeFiles/app.dir/_deps/imgui-src/imgui.cpp.obj
+[37/37] Linking CXX executable app.exe; Copying shaders to bin directory; Copying data to bin directory

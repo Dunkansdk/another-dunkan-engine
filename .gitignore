@@ -1,7 +1,116 @@
-build/**
-out/**
-.vs/**
-.cache/**
-.vscode/**
+# Build directories
+build/
+out/
+bin/
+lib/
+*.build/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+_deps/
+*.cmake
+
+# Compiled binaries
+*.exe
+*.out
+*.app
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+
+# Object files
+*.o
+*.obj
+*.lo
+*.slo
+*.ko
+
+# Shader compiled files
+*.spv
+
+# IDE and editor files
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.cache/
 compile_commands.json
 compile_flags.txt
+*.code-workspace
+
+# Visual Studio
+*.user
+*.suo
+*.ncb
+*.sdf
+*.opensdf
+*.vcxproj
+*.vcxproj.filters
+ipch/
+*.aps
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Build logs and temporary files
+*.log
+*.tlog
+*.ilk
+*.pdb
+*.idb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.vspscc
+*.vssscc
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+*.stackdump
+
+# Package managers
+vcpkg_installed/
+_deps/
+
+# Vulkan validation layers output
+VkLayer*.json
+
+# ImGui configuration
+imgui.ini
+
+# Profiling
+*.prof
+*.gmon
+
+# Debug and release artifacts
+Debug/
+Release/
+RelWithDebInfo/
+MinSizeRel/
+x64/
+x86/
+
+# Test and benchmark output
+Testing/
+*.test
+*.bench
+
+# Documentation generated files
+docs/html/
+docs/latex/
+Doxyfile.bak
